@@ -1,0 +1,54 @@
+diff --git a/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift b/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift
+index 4d4d264..c9fd7b6 100644
+--- a/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift
++++ b/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift
+@@ -104,7 +104,13 @@ class AdvancedSettingsViewController: FormViewController {
+                 guard let value = row.value else { return }
+                 UserDefaultsRepository.debugLog.value = value
+             }
+-
++            <<< SwitchRow("localAudioPlayback"){ row in
++                row.title = "Local Audio Playback"
++                row.value = UserDefaultsRepository.localAudioPlayback.value
++            }.onChange { [weak self] row in
++                guard let value = row.value else { return }
++                UserDefaultsRepository.localAudioPlayback.value = value
++            }
+             
+             
+             
+diff --git a/LoopFollow/helpers/BackgroundTaskAudio.swift b/LoopFollow/helpers/BackgroundTaskAudio.swift
+index 4c5af07..8531dde 100755
+--- a/LoopFollow/helpers/BackgroundTaskAudio.swift
++++ b/LoopFollow/helpers/BackgroundTaskAudio.swift
+@@ -38,7 +38,17 @@ class BackgroundTask {
+             let bundle = Bundle.main.path(forResource: "blank", ofType: "wav")
+             let alertSound = URL(fileURLWithPath: bundle!)
+            // try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
++            if UserDefaultsRepository.localAudioPlayback.value {
++                try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: .mixWithOthers)
++                try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
++                
++                print("Local audio playing");
++            }
++            else{
++                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
++                print("Mixed audio playing");
++            }
++
+             try AVAudioSession.sharedInstance().setActive(true)
+             try self.player = AVAudioPlayer(contentsOf: alertSound)
+             // Play audio forever by setting num of loops to -1
+diff --git a/LoopFollow/repository/UserDefaults.swift b/LoopFollow/repository/UserDefaults.swift
+index e1e2a8e..a17dea6 100644
+--- a/LoopFollow/repository/UserDefaults.swift
++++ b/LoopFollow/repository/UserDefaults.swift
+@@ -95,6 +95,7 @@ class UserDefaultsRepository {
+     static let alwaysDownloadAllBG = UserDefaultsValue<Bool>(key: "alwaysDownloadAllBG", default: true)
+     static let bgUpdateDelay = UserDefaultsValue<Int>(key: "bgUpdateDelay", default: 10)
+     static let downloadDays = UserDefaultsValue<Int>(key: "downloadDays", default: 1)
++    static let localAudioPlayback = UserDefaultsValue<Bool>(key: "localAudioPlayback", default: false)
+ 
+     
+     // Watch Calendar Settings
