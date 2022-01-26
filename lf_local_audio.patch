@@ -1,12 +1,17 @@
 diff --git a/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift b/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift
-index 4d4d264..c9fd7b6 100644
+index b184a3e..2bddef8 100644
 --- a/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift
 +++ b/LoopFollow/ViewControllers/AdvancedSettingsViewController.swift
-@@ -104,7 +104,13 @@ class AdvancedSettingsViewController: FormViewController {
-                 guard let value = row.value else { return }
-                 UserDefaultsRepository.debugLog.value = value
+@@ -82,11 +82,14 @@ class AdvancedSettingsViewController: FormViewController {
+                     guard let value = row.value else { return }
+                     UserDefaultsRepository.bgUpdateDelay.value = Int(value)
              }
 -
+-
+-            
+-            
+-            
++        
 +            <<< SwitchRow("localAudioPlayback"){ row in
 +                row.title = "Local Audio Playback"
 +                row.value = UserDefaultsRepository.localAudioPlayback.value
@@ -15,10 +20,10 @@ index 4d4d264..c9fd7b6 100644
 +                UserDefaultsRepository.localAudioPlayback.value = value
 +            }
              
-             
-             
+             +++ ButtonRow() {
+                 $0.title = "DONE"
 diff --git a/LoopFollow/helpers/BackgroundTaskAudio.swift b/LoopFollow/helpers/BackgroundTaskAudio.swift
-index 4c5af07..8531dde 100755
+index 4c5af07..d3dd7ff 100755
 --- a/LoopFollow/helpers/BackgroundTaskAudio.swift
 +++ b/LoopFollow/helpers/BackgroundTaskAudio.swift
 @@ -38,7 +38,17 @@ class BackgroundTask {
@@ -29,7 +34,7 @@ index 4c5af07..8531dde 100755
 +            if UserDefaultsRepository.localAudioPlayback.value {
 +                try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: .mixWithOthers)
 +                try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
-+                
++
 +                print("Local audio playing");
 +            }
 +            else{
@@ -41,10 +46,10 @@ index 4c5af07..8531dde 100755
              try self.player = AVAudioPlayer(contentsOf: alertSound)
              // Play audio forever by setting num of loops to -1
 diff --git a/LoopFollow/repository/UserDefaults.swift b/LoopFollow/repository/UserDefaults.swift
-index e1e2a8e..a17dea6 100644
+index 649fc66..694dca9 100644
 --- a/LoopFollow/repository/UserDefaults.swift
 +++ b/LoopFollow/repository/UserDefaults.swift
-@@ -95,6 +95,7 @@ class UserDefaultsRepository {
+@@ -96,6 +96,7 @@ class UserDefaultsRepository {
      static let alwaysDownloadAllBG = UserDefaultsValue<Bool>(key: "alwaysDownloadAllBG", default: true)
      static let bgUpdateDelay = UserDefaultsValue<Int>(key: "bgUpdateDelay", default: 10)
      static let downloadDays = UserDefaultsValue<Int>(key: "downloadDays", default: 1)
