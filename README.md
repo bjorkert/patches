@@ -38,3 +38,9 @@ Another line, this one 90 minutes back in time to get an indication of if a meal
 ```console
 git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/proteinLine.patch)
 ```
+
+## Duplicate blood glucose entries
+Loop 3 is uploading duplicate svg entries, this messes up the LoopFollow graph and statistics. This can also happen if you have both bridge enabled in nightscout as well as Loop "upload readings". This patch solves that problem by filtering out 1 reading per 5 minutes. I have made a pull request for this fix: https://github.com/jonfawcett/LoopFollow/pull/178
+```console
+git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/removeSVGDuplicates.patch)
+```
