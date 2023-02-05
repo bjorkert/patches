@@ -1,17 +1,17 @@
-From 26d2e963a577d61de4b718c177f13ea986145941 Mon Sep 17 00:00:00 2001
+From 82f4c74305ac0473e65175f864e891a1b0eae8c1 Mon Sep 17 00:00:00 2001
 From: jonasbjo <jonas.bjorkert@tele2.com>
-Date: Sun, 22 Jan 2023 09:43:22 +0100
+Date: Sun, 5 Feb 2023 18:53:50 +0100
 Subject: [PATCH] remove duplicates
 
 ---
- LoopFollow/Controllers/NightScout.swift | 48 +++++++++++++++++--------
- 1 file changed, 34 insertions(+), 14 deletions(-)
+ LoopFollow/Controllers/NightScout.swift | 50 +++++++++++++++++--------
+ 1 file changed, 35 insertions(+), 15 deletions(-)
 
 diff --git a/LoopFollow/Controllers/NightScout.swift b/LoopFollow/Controllers/NightScout.swift
-index e846bfa..b2163cc 100644
+index e846bfa..cc228c9 100644
 --- a/LoopFollow/Controllers/NightScout.swift
 +++ b/LoopFollow/Controllers/NightScout.swift
-@@ -115,20 +115,23 @@ extension MainViewController {
+@@ -115,27 +115,30 @@ extension MainViewController {
              self.startBGTimer(time: 10)
              return
          }
@@ -26,7 +26,7 @@ index e846bfa..b2163cc 100644
          var urlBGDataPath: String = UserDefaultsRepository.url.value + "/api/v1/entries/sgv.json?"
 -        if token == "" {
 -            urlBGDataPath = urlBGDataPath + "count=" + points
-+        
++
 +        if onlyPullLastRecord {
 +            urlBGDataPath = urlBGDataPath + "count=1"
          } else {
@@ -35,21 +35,29 @@ index e846bfa..b2163cc 100644
 +            let utcISODateFormatter = ISO8601DateFormatter()
 +            let date = Calendar.current.date(byAdding: .day, value: -1 * UserDefaultsRepository.downloadDays.value, to: Date())!
 +            urlBGDataPath = urlBGDataPath + "count=1000&find[dateString][$gte]=" + utcISODateFormatter.string(from: date)
-+        }
-+        
+         }
++
 +        if !token.isEmpty {
 +            urlBGDataPath = urlBGDataPath + "&token=" + token
-         }
-+        
++        }
++
          guard let urlBGData = URL(string: urlBGDataPath) else {
              // if we have Dex data, use it
              if !dexData.isEmpty {
+                 self.ProcessDexBGData(data: dexData, onlyPullLastRecord: onlyPullLastRecord, sourceName: "Dexcom")
+                 return
+             }
+-            
++
+             if globalVariables.nsVerifiedAlert < dateTimeUtils.getNowTimeIntervalUTC() + 300 {
+                 globalVariables.nsVerifiedAlert = dateTimeUtils.getNowTimeIntervalUTC()
+                 //self.sendNotification(title: "Nightscout Error", body: "Please double check url, token, and internet connection. This may also indicate a temporary Nightscout issue")
 @@ -196,22 +199,39 @@ extension MainViewController {
                          nsData[i].date /= 1000
                          nsData[i].date.round(FloatingPointRoundingRule.toNearestOrEven)
                      }
 +                    print(nsData.count)
-+                    
++
 +                    //Avoid duplicate entries messing up the graph, only use one reading per 5 minutes.
 +                    let graphHours = 24 * UserDefaultsRepository.downloadDays.value
 +                    let points = graphHours * 12 + 1
