@@ -1,0 +1,28 @@
+From 49e034d7f337d937478b3c87b4189b2748b7327c Mon Sep 17 00:00:00 2001
+From: jonasbjo <jonas.bjorkert@tele2.com>
+Date: Sun, 5 Feb 2023 10:33:43 +0100
+Subject: [PATCH] Set suspend threshold for manual/meal bolusing to 54 mg/dL (3
+ mmol/L)
+
+---
+ Loop/Managers/DoseMath.swift | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/Loop/Managers/DoseMath.swift b/Loop/Managers/DoseMath.swift
+index f178c849..a6fef09a 100644
+--- a/Loop/Managers/DoseMath.swift
++++ b/Loop/Managers/DoseMath.swift
+@@ -552,7 +552,9 @@ extension Collection where Element: GlucoseValue {
+         guard let correction = self.insulinCorrection(
+             to: correctionRange,
+             at: date,
+-            suspendThreshold: suspendThreshold ?? correctionRange.quantityRange(at: date).lowerBound,
++            //Set suspend threshold for manual/meal bolusing to 54 mg/dL (3 mmol/L)
++            //suspendThreshold: suspendThreshold ?? correctionRange.quantityRange(at: date).lowerBound,
++            suspendThreshold: HKQuantity(unit: HKUnit.milligramsPerDeciliter, doubleValue: 54),
+             sensitivity: sensitivity.quantity(at: date),
+             model: model
+         ) else {
+-- 
+2.38.1
+
