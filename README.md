@@ -1,7 +1,7 @@
 # Loop patches
 These patches are designed for the pre-patched loop and learn version of Loop 3.0 using the Xcode build method.
 
-You need to be in the LoopWorkspace folder when these commands are executed.
+You need to be in the "LoopWorkspace" folder when these commands are executed.
 
 ## Manual Bolus Threshold
 Separate suspend threshold for meal and manual bolusing, 54 mg/dL (3 mmol/L) - this value can easily be modified after the patch is applied.
@@ -22,9 +22,9 @@ git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bj
 ```
 
 # Loop Follow patches
-These patches are designed for the dev branch of LoopFollow using the Xcode build method.
+These patches are designed for the dev branch of Loop Follow using the Xcode build method.
 
-You need to be in the LoopFollow folder when these commands are executed.
+You need to be in the "LoopFollow" folder when these commands are executed.
 
 ## Blue Line -30 minutes
 A blue line 30 minutes back in time to get a clearer view of what boluses has started to give effect.
