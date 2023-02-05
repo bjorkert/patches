@@ -33,7 +33,7 @@ index 90feb09..c18c214 100644
 +                "secret": credentials.password.sha1()
 +            ]
 +
-+            guard let url = URL(string: "\(credentials.url)/xapi/v1/treatments.json") else { return }
++            guard let url = URL(string: "\(credentials.url)/api/v1/treatments.json") else { return }
 +            var request = URLRequest(url: url)
 +            request.httpMethod = "POST"
 +            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
