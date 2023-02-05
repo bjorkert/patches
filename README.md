@@ -10,7 +10,7 @@ git apply --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjork
 ```
 
 ## Overlaping override bug
-There is a bug in Loop when it comes to overlapping overrides. If you manage to get overlapping overrides, Loop will crash and will not be able to start again until 48 hours has passed. I have made a pull request to resolve this, a fix is available here until the pull request is approved.
+There is a bug in Loop when it comes to overlapping overrides. If you manage to get overlapping overrides, Loop will crash and will not be able to start again until 48 hours has passed. I have made a pull request to resolve this (https://github.com/LoopKit/LoopKit/pull/449), a fix is available here until the pull request is approved.
 ```console
 git apply --directory=LoopKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/overlappingOverride.patch)
 ```
@@ -22,4 +22,19 @@ git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bj
 ```
 
 # Loop Follow patches
-curl https://raw.githubusercontent.com/bjorkert/patches/master/lf_blue_line.patch| git apply 
+The patches are designed for the branch of LoopFollow using the Xcode build method.
+
+You need to be in the LoopFollow folder when these commands are executed.
+
+## Blue Line -30 minutes
+A blue line 30 minutes back in time to get a clearer view of what boluses has started to give effect.
+I described it in this issue, resulted in some modifications but but the blue line. https://github.com/jonfawcett/LoopFollow/issues/110
+```console
+git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/lf_blue_line.patch)
+```
+
+## Protein line -90 minutes
+Another line, this one 90 minutes back in time to get an indication of if a meal is causing a bs raise 90 minutes later due to protein.
+```console
+git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/proteinLine.patch)
+```
