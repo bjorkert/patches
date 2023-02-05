@@ -1,0 +1,26 @@
+From 3269c90d971a355a3336a54a480943aafeeeb662 Mon Sep 17 00:00:00 2001
+From: jonasbjo <jonas.bjorkert@tele2.com>
+Date: Sun, 5 Feb 2023 11:14:59 +0100
+Subject: [PATCH] overlappingOverride
+
+---
+ LoopKit/TemporaryScheduleOverrideHistory.swift | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/LoopKit/TemporaryScheduleOverrideHistory.swift b/LoopKit/TemporaryScheduleOverrideHistory.swift
+index 7b3bed7..5720d9e 100644
+--- a/LoopKit/TemporaryScheduleOverrideHistory.swift
++++ b/LoopKit/TemporaryScheduleOverrideHistory.swift
+@@ -271,6 +271,9 @@ public final class TemporaryScheduleOverrideHistory {
+             // Wipe only conflicting overrides to retain as much history as possible.
+             recentEvents.removeAll(at: invalidOverrideIndices)
+ 
++            // Store the history without the conflicting overrides
++            delegate?.temporaryScheduleOverrideHistoryDidUpdate(self)
++
+             // Crash deliberately to notify something has gone wrong.
+             preconditionFailure("No overrides should overlap.")
+         }
+-- 
+2.38.1
+
