@@ -1,5 +1,5 @@
 # Loop patches
-The patches are designed for the pre-patched loop and learn version of Loop 3.0 using the Xcode build method.
+These patches are designed for the pre-patched loop and learn version of Loop 3.0 using the Xcode build method.
 
 You need to be in the LoopWorkspace folder when these commands are executed.
 
@@ -22,7 +22,7 @@ git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bj
 ```
 
 # Loop Follow patches
-The patches are designed for the branch of LoopFollow using the Xcode build method.
+These patches are designed for the dev branch of LoopFollow using the Xcode build method.
 
 You need to be in the LoopFollow folder when these commands are executed.
 
