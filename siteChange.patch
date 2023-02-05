@@ -1,16 +1,14 @@
-From 5943c6a8118d8c1c1a8131f75ba8873795d9d827 Mon Sep 17 00:00:00 2001
+From a3cc385805b1bb100c2a06c31791464d8199d601 Mon Sep 17 00:00:00 2001
 From: jonasbjo <jonas.bjorkert@tele2.com>
-Date: Sun, 5 Feb 2023 11:44:54 +0100
+Date: Sun, 5 Feb 2023 11:49:48 +0100
 Subject: [PATCH] siteChange
 
 ---
- OmniBLE/PumpManager/OmniBLEPumpManager.swift | 45 +++++++++++
- siteChange.patch                             | 82 ++++++++++++++++++++
- 2 files changed, 127 insertions(+)
- create mode 100644 siteChange.patch
+ OmniBLE/PumpManager/OmniBLEPumpManager.swift | 45 ++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
 diff --git a/OmniBLE/PumpManager/OmniBLEPumpManager.swift b/OmniBLE/PumpManager/OmniBLEPumpManager.swift
-index 90feb09..3909260 100644
+index 90feb09..c18c214 100644
 --- a/OmniBLE/PumpManager/OmniBLEPumpManager.swift
 +++ b/OmniBLE/PumpManager/OmniBLEPumpManager.swift
 @@ -874,6 +874,49 @@ extension OmniBLEPumpManager {
@@ -22,7 +20,7 @@ index 90feb09..3909260 100644
 +        do { // Silence all errors and return
 +            let keychain = KeychainManager()
 +            let credentials = try keychain.getInternetCredentials(account: "NightscoutAPI")
-+            
++
 +            let date = Date()
 +            let formatter = ISO8601DateFormatter()
 +            formatter.timeZone = TimeZone(abbreviation: "UTC")
@@ -59,7 +57,7 @@ index 90feb09..3909260 100644
 +            return
 +        }
 +    }
-+    
++
      // Called on the main thread
      public func insertCannula(completion: @escaping (Result<TimeInterval,OmniBLEPumpManagerError>) -> Void) {
          
@@ -79,94 +77,6 @@ index 90feb09..3909260 100644
                      completion(.success(finishWait))
                  } catch let error {
                      completion(.failure(.communication(error)))
-diff --git a/siteChange.patch b/siteChange.patch
-new file mode 100644
-index 0000000..256d953
---- /dev/null
-+++ b/siteChange.patch
-@@ -0,0 +1,82 @@
-+From 5753e323bd7c20128046f29a0b2c8059ab6d1498 Mon Sep 17 00:00:00 2001
-+From: jonasbjo <jonas.bjorkert@tele2.com>
-+Date: Sun, 5 Feb 2023 11:30:04 +0100
-+Subject: [PATCH] siteChange
-+
-+---
-+ OmniBLE/PumpManager/OmniBLEPumpManager.swift | 45 ++++++++++++++++++++
-+ 1 file changed, 45 insertions(+)
-+
-+diff --git a/OmniBLE/PumpManager/OmniBLEPumpManager.swift b/OmniBLE/PumpManager/OmniBLEPumpManager.swift
-+index 90feb09..2e6f827 100644
-+--- a/OmniBLE/PumpManager/OmniBLEPumpManager.swift
-++++ b/OmniBLE/PumpManager/OmniBLEPumpManager.swift
-+@@ -874,6 +874,49 @@ extension OmniBLEPumpManager {
-+         #endif
-+     }
-+ 
-++    private func SiteChange()
-++    {
-++        do { // Silence all errors and return
-++            let keychain = KeychainManager()
-++            let credentials = try keychain.getInternetCredentials(account: "NightscoutAPI")
-++            
-++            let date = Date()
-++            let formatter = ISO8601DateFormatter()
-++            formatter.timeZone = TimeZone(abbreviation: "UTC")
-++            let dateString = formatter.string(from: date)
-++            
-++            let json: [String: Any] = [
-++                "enteredBy": "Loop",
-++                "timestamp": dateString,
-++                "eventType": "Site Change",
-++                "secret": credentials.password.sha1()
-++            ]
-++            
-++            guard let url = URL(string: "\(credentials.url)/xapi/v1/treatments.json") else { return }
-++            var request = URLRequest(url: url)
-++            request.httpMethod = "POST"
-++            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-++            request.httpBody = try? JSONSerialization.data(withJSONObject: json)
-++            
-++            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-++                if let error = error {
-++                    // Handle network error
-++                    print("Error: \(error)")
-++                    return
-++                }
-++                
-++                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-++                    // Handle server error
-++                    print("Error: Invalid response")
-++                    return
-++                }
-++            }
-++            task.resume()
-++        } catch {
-++            return
-++        }
-++    }
-++    
-+     // Called on the main thread
-+     public func insertCannula(completion: @escaping (Result<TimeInterval,OmniBLEPumpManagerError>) -> Void) {
-+         
-+@@ -894,6 +937,7 @@ extension OmniBLEPumpManager {
-+                 var podState = state.podState
-+                 podState?.setupProgress = .completed
-+                 state.updatePodStateFromPodComms(podState)
-++                self.SiteChange()
-+                 return .success(mockDelay)
-+             })
-+ 
-+@@ -944,6 +988,7 @@ extension OmniBLEPumpManager {
-+                     ]
-+ 
-+                     let finishWait = try session.insertCannula(optionalAlerts: alerts)
-++                    self.SiteChange()
-+                     completion(.success(finishWait))
-+                 } catch let error {
-+                     completion(.failure(.communication(error)))
-+-- 
-+2.38.1
-+
 -- 
 2.38.1
 
