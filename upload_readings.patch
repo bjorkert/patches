@@ -1,0 +1,25 @@
+From 3e0644d75b5ec3c956249409ac1b1c0de8aa5cdc Mon Sep 17 00:00:00 2001
+From: jonasbjo <jonas.bjorkert@tele2.com>
+Date: Tue, 7 Feb 2023 19:55:13 +0100
+Subject: [PATCH] upload readings
+
+---
+ CGMBLEKit/TransmitterManager.swift | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CGMBLEKit/TransmitterManager.swift b/CGMBLEKit/TransmitterManager.swift
+index ce493f6..ad07fa9 100644
+--- a/CGMBLEKit/TransmitterManager.swift
++++ b/CGMBLEKit/TransmitterManager.swift
+@@ -22,7 +22,7 @@ public struct TransmitterManagerState: RawRepresentable, Equatable {
+     
+     public var shouldSyncToRemoteService: Bool
+ 
+-    public init(transmitterID: String, shouldSyncToRemoteService: Bool = false) {
++    public init(transmitterID: String, shouldSyncToRemoteService: Bool = true) {
+         self.transmitterID = transmitterID
+         self.shouldSyncToRemoteService = shouldSyncToRemoteService
+     }
+-- 
+2.38.1
+
