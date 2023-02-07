@@ -1,7 +1,27 @@
-# Loop patches
 These patches are designed for the pre-patched loop and learn version of Loop 3.0 using the Xcode build method.
 
-You need to be in the "LoopWorkspace" folder when these commands are executed.
+## How to apply a patch:
+First, download Loop using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
+
+### Download loop
+When you have downloaded loop, the terminal window should look something like the picture below. Note the underlined text in the picture, select and copy (⌘ C) that text from your terminal, include the whole row from "cd" all the way to "LoopWorkspace".
+![Loop](img/build_loop_done.png)
+
+### Change folder
+Paste (⌘ V) the command in your terminal and hit enter.
+![Loop](img/cd_done.png)
+
+### Select patch
+Now select the patch you want to apply and copy the command for that patch, there is a button for copying the command:
+![Loop](img/copy.png)
+
+### Apply patch
+Go back to the terminal and paste (⌘ V) the command and hit enter. There should not be any output from the command, just a new line as in the picture below.
+![Loop](img/paste.png)
+
+### Repeat "Select patch" and "Apply" patch for any additional patches you want to apply.  
+&nbsp;
+# Loop patches
 
 ## Manual Bolus Threshold
 Separate suspend threshold for meal and manual bolusing, 54 mg/dL (3 mmol/L) - this value can easily be modified after the patch is applied.
@@ -20,7 +40,7 @@ This patch automatically updates Nightscout with a "Pump Site Change"-treatment 
 ```console
 git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/siteChange.patch)
 ```
-
+&nbsp;
 # Loop Follow patches
 These patches are designed for the dev branch of Loop Follow using the Xcode build method.
 
