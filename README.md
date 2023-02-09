@@ -28,18 +28,35 @@ Separate suspend threshold for meal and manual bolusing, 54 mg/dL (3 mmol/L) - t
 ```console
 git apply --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/manualBolusThreshold.patch)
 ```
-
+&nbsp;
 ## Overlapping override bug
 There is a bug in Loop when it comes to overlapping overrides. If you manage to get overlapping overrides, Loop will crash and will not be able to start again until 48 hours has passed. I have made a pull request to resolve this (https://github.com/LoopKit/LoopKit/pull/449), a fix is available here until the pull request is approved.
 ```console
 git apply --directory=LoopKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/overlappingOverride.patch)
 ```
-
+&nbsp;
 ## Omnipod Dash Site Change
 This patch automatically updates Nightscout with a "Pump Site Change"-treatment when replacing a pod. This results in updated "CAGE"-pill and pod change reminder in Loop Follow.
 ```console
 git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/siteChange.patch)
 ```
+&nbsp;
+## Dexcom G6 Sensor Change
+>**Warning** Not yet tested, feedback wanted!
+
+This patch automatically updates Nightscout with the "Sensor Change"-treatment when replacing a sensor. This results in updated "SAGE"-pill and sensor change reminder in Loop Follow. Note, the current sensor start date will be populated directly after the patch is applied.
+```console
+git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/g6_sensor_start.patch)
+```
+&nbsp;
+## Dexcom G6 - Upload readings On
+>**Warning** Only tested in simulator, feedback wanted!
+
+This patch makes the "Upload readings" default On when changint transmitter.
+```console
+git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/upload_readings.patch)
+```
+&nbsp;
 &nbsp;
 # Loop Follow patches
 These patches are designed for the dev branch of Loop Follow using the Xcode build method.
@@ -52,13 +69,13 @@ I described it in this issue, resulted in some modifications but but the blue li
 ```console
 git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/lf_blue_line.patch)
 ```
-
+&nbsp;
 ## Protein line -90 minutes
 Another line, this one 90 minutes back in time to get an indication of if a meal is causing a bs raise 90 minutes later due to protein.
 ```console
 git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/proteinLine.patch)
 ```
-
+&nbsp;
 ## Duplicate blood glucose entries
 Loop 3 is uploading duplicate svg entries, this messes up the LoopFollow graphs and statistics. This can also happen if you have both bridge enabled in nightscout as well as Loop "upload readings". This patch solves that problem by filtering out 1 reading per 5 minutes. I have made a pull request for this fix: https://github.com/jonfawcett/LoopFollow/pull/178
 ```console
