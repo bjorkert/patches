@@ -1,14 +1,14 @@
-From 7cbcb446a495858ac9be752d8329d9483f6261e9 Mon Sep 17 00:00:00 2001
+From 3a2c5208202e35f1ca4f45cef646e4cd66b68faa Mon Sep 17 00:00:00 2001
 From: jonasbjo <jonas.bjorkert@tele2.com>
-Date: Thu, 9 Feb 2023 16:16:25 +0100
+Date: Thu, 9 Feb 2023 21:54:58 +0100
 Subject: [PATCH] g6_sensor_start
 
 ---
- CGMBLEKit/TransmitterManager.swift | 75 +++++++++++++++++++++++++++++-
- 1 file changed, 74 insertions(+), 1 deletion(-)
+ CGMBLEKit/TransmitterManager.swift | 77 +++++++++++++++++++++++++++++-
+ 1 file changed, 76 insertions(+), 1 deletion(-)
 
 diff --git a/CGMBLEKit/TransmitterManager.swift b/CGMBLEKit/TransmitterManager.swift
-index ce493f6..dde4618 100644
+index ce493f6..f7dabe4 100644
 --- a/CGMBLEKit/TransmitterManager.swift
 +++ b/CGMBLEKit/TransmitterManager.swift
 @@ -9,7 +9,19 @@ import HealthKit
@@ -32,7 +32,7 @@ index ce493f6..dde4618 100644
  
  public struct TransmitterManagerState: RawRepresentable, Equatable {
      public typealias RawValue = CGMManager.RawStateValue
-@@ -301,6 +313,65 @@ public class TransmitterManager: TransmitterDelegate {
+@@ -301,6 +313,67 @@ public class TransmitterManager: TransmitterDelegate {
          logDeviceCommunication("Error: \(error)", type: .error)
      }
  
@@ -41,17 +41,19 @@ index ce493f6..dde4618 100644
 +        do { // Silence all errors and return
 +            if let latestReading = latestReading {
 +                let date = latestReading.sessionStartDate
-+                let twoAndAHalfHours = 2.5 * 60 * 60 // 2.5 hours in seconds
++                let tenDaysInSeconds = 864000.0
++                let timeIntervalSinceNow = date.timeIntervalSinceNow
 +                let now = Date()
 +
 +                //Check that the sessionStartDate is reasonable
-+                if date.timeIntervalSinceNow > -twoAndAHalfHours && date <= now {
++                if timeIntervalSinceNow > -tenDaysInSeconds && date <= now {
 +
 +                    //Read the last date sent to nightscout
 +                    let interval = UserDefaults.standard.double(forKey: "lastSessionStartDate")
 +                    let lastsessionStartDate = Date(timeIntervalSinceReferenceDate: interval)
 +
-+                    if lastsessionStartDate != date {
++                    //Check if the last value we sent to nightscout is not the same (with some margin for rounding errors)
++                    if abs(date.timeIntervalSince(lastsessionStartDate)) > 60 {
 +                        let keychain = KeychainManager()
 +                        let credentials = try keychain.getInternetCredentials(account: "NightscoutAPI")
 +
@@ -61,7 +63,7 @@ index ce493f6..dde4618 100644
 +
 +                        let json: [String: Any] = [
 +                            "enteredBy": "Loop",
-+                            "timestamp": dateString,
++                            "created_at": dateString,
 +                            "eventType": "Sensor Start",
 +                            "secret": credentials.password.sha1()
 +                        ]
@@ -98,7 +100,7 @@ index ce493f6..dde4618 100644
      public func transmitter(_ transmitter: Transmitter, didRead glucose: Glucose) {
          guard glucose != latestReading else {
              updateDelegate(with: .noData)
-@@ -309,6 +380,8 @@ public class TransmitterManager: TransmitterDelegate {
+@@ -309,6 +382,8 @@ public class TransmitterManager: TransmitterDelegate {
  
          latestReading = glucose
  
