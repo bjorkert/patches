@@ -3,7 +3,7 @@ These patches are designed for the pre-patched loop and learn version of Loop 3.
 ## How to apply a patch:
 First, download Loop using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
 
-### Download loop
+### Download Loop
 When you have downloaded loop, the terminal window should look something like the picture below. Note the underlined text in the picture, select and copy (⌘ C) that text from your terminal, include the whole row from "cd" all the way to "LoopWorkspace".
 ![Loop](img/build_loop_done.png)
 
@@ -19,7 +19,7 @@ Now select the patch you want to apply and copy the command for that patch, ther
 Go back to the terminal and paste (⌘ V) the command and hit enter. There should not be any output from the command, just a new line as in the picture below.
 ![Loop](img/paste.png)
 
-### Repeat "Select patch" and "Apply" patch for any additional patches you want to apply.  
+### Repeat "Select patch" and "Apply patch" for any additional patches you want to apply.  
 &nbsp;
 # Loop patches
 
@@ -36,20 +36,20 @@ git apply --directory=LoopKit <<< $(curl -s https://raw.githubusercontent.com/bj
 ```
 &nbsp;
 ## Omnipod Dash Site Change
-This patch automatically updates Nightscout with a "Pump Site Change"-treatment when replacing a pod. This results in updated "CAGE"-pill and pod change reminder in Loop Follow.
+Update Nightscout with a "Pump Site Change"-treatment when replacing a pod. This results in updated "CAGE"-pill and pod change reminder in Loop Follow.
 ```console
 git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/siteChange.patch)
 ```
 &nbsp;
-## Dexcom G6 Sensor Change
+## Dexcom G6 - Sensor Change
 >**Warning** Not yet tested, feedback wanted!
 
-This patch automatically updates Nightscout with the "Sensor Change"-treatment when replacing a sensor. This results in updated "SAGE"-pill and sensor change reminder in Loop Follow. Note, the current sensor start date will be populated directly after the patch is applied.
+Update Nightscout automatically with the "Sensor Change" treatment when you replace a sensor. This leads to an updated "SAGE" pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated as soon as the patch is applied.
 ```console
 git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/g6_sensor_start.patch)
 ```
 &nbsp;
-## Dexcom G6 - Upload readings On
+## Dexcom G6 - Upload Readings
 >**Warning** Only tested in simulator, feedback wanted!
 
 This patch makes the "Upload readings" default On when changint transmitter.
