@@ -49,16 +49,12 @@ git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bj
 ```
 &nbsp;
 ## Dexcom G6 - Sensor Change
->**Warning** Not yet tested, feedback wanted!
-
 Update Nightscout automatically with the "Sensor Change" treatment when you replace a sensor. This leads to an updated "SAGE" pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
 ```console
 git apply --directory=CGMBLEKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/g6_sensor_start.patch)
 ```
 &nbsp;
 ## Dexcom G6 - Upload Readings
->**Warning** Only tested in simulator, feedback wanted!
-
 This patch makes the "Upload readings" default On when changing transmitter.
 ```console
 git apply --directory=CGMBLEKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/upload_readings.patch)
