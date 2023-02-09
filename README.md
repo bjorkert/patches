@@ -21,6 +21,13 @@ Go back to the terminal and paste (⌘ V) the command and hit enter. There shoul
 
 ### Repeat "Select patch" and "Apply patch" for any additional patches you want to apply.  
 &nbsp;
+### Reverting
+As long as the patch is unchanged since you applied it, it can easily be reverted. Just add a "-R" to the command, for example:
+```console
+git apply -R --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/manualBolusThreshold.patch)
+```
+
+&nbsp;
 # Loop patches
 
 ## Manual Bolus Threshold
