@@ -52,7 +52,7 @@ git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bj
 ## Dexcom G6 - Upload Readings
 >**Warning** Only tested in simulator, feedback wanted!
 
-This patch makes the "Upload readings" default On when changint transmitter.
+This patch makes the "Upload readings" default On when changing transmitter.
 ```console
 git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/upload_readings.patch)
 ```
