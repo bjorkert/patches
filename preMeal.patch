@@ -35,7 +35,7 @@ index 00b64996..59ade86a 100644
      var settings: LoopSettings {
          lockedSettings.value
      }
-+    
++
 +    //Patch for updating nightscout with preMeal info
 +    private func preMeal(preMealTargetRange: TemporaryScheduleOverride?) {
 +        do { // Silence all errors and return
