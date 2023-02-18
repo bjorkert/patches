@@ -60,6 +60,12 @@ This patch makes the "Upload readings" default On when changing transmitter.
 git apply --directory=CGMBLEKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/upload_readings.patch)
 ```
 &nbsp;
+## PreMeal - Visualize PreMeal in Nightscout
+Show PreMeal in Nightscout as Temporary target.
+```console
+git apply --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/preMeal.patch)
+```
+&nbsp;
 &nbsp;
 # Loop Follow patches
 These patches are designed for the dev branch of Loop Follow using the Xcode build method.
