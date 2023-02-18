@@ -66,6 +66,12 @@ Show PreMeal in Nightscout as Temporary target.
 git apply --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/preMeal.patch)
 ```
 &nbsp;
+## Apply all patches at once
+One command to rule them all. All patches above will be appled at once.
+```console
+/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/loop.sh)"
+```
+&nbsp;
 &nbsp;
 # Loop Follow patches
 These patches are designed for the dev branch of Loop Follow using the Xcode build method.
