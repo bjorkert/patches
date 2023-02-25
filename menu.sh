@@ -40,7 +40,6 @@ function apply() {
             echo "${name} !!! Patch can't be applied !!!"
         fi
     fi
-    echo
 }
 
 function revertmenu() {
@@ -82,7 +81,6 @@ function revert() {
             echo "${name} !!! Reverting or applying the patch is not possible !!!"
         fi
     fi
-    echo
 }
 
 function add_patch() {
