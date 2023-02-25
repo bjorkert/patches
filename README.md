@@ -35,7 +35,7 @@ Update Nightscout automatically with the "Sensor Change" treatment when you repl
 ## Dexcom G6 - Upload Readings
 This patch makes the "Upload readings" default On when changing transmitter.
 &nbsp;
-## PreMeal - Visualize PreMeal in Nightscout
+## View PreMeal in Nightscout
 Show PreMeal in Nightscout as Temporary target.
 &nbsp;
 &nbsp;
