@@ -15,6 +15,8 @@ Paste (⌘ V) the command in your terminal and hit enter.
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
+Copy the command using the copy-button and paste (⌘ V) the command in your terminal and hit enter.
+![Loop](img/copy_command.png)
 
 &nbsp;
 # Loop patches
