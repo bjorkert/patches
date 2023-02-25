@@ -128,7 +128,7 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     add_patch "Omnipod Dash Site Change" "siteChange" "OmniBLE"
     add_patch "Dexcom G6 - Sensor Change" "g6_sensor_start" "CGMBLEKit"
     add_patch "Dexcom G6 - Upload Readings" "upload_readings" "CGMBLEKit"
-    add_patch "PreMeal - Visualize PreMeal in Nightscout" "preMeal" "Loop"
+    add_patch "View PreMeal in Nightscout" "preMeal" "Loop"
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir
