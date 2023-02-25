@@ -1,14 +1,14 @@
-From 1a4da489ee0e1debb1a428e4d573e8645372caa4 Mon Sep 17 00:00:00 2001
+From 7e707f9ba0b19396c00be0d76af5992c8a59ab80 Mon Sep 17 00:00:00 2001
 From: bjorkert <jonas@bjorkert.se>
-Date: Sat, 18 Feb 2023 14:37:31 +0100
+Date: Sat, 25 Feb 2023 19:58:27 +0100
 Subject: [PATCH] preMeal
 
 ---
- Loop/Managers/LoopDataManager.swift | 74 +++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+ Loop/Managers/LoopDataManager.swift | 81 +++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
 diff --git a/Loop/Managers/LoopDataManager.swift b/Loop/Managers/LoopDataManager.swift
-index 00b64996..59ade86a 100644
+index 00b64996..bafe4052 100644
 --- a/Loop/Managers/LoopDataManager.swift
 +++ b/Loop/Managers/LoopDataManager.swift
 @@ -12,6 +12,19 @@ import HealthKit
@@ -31,11 +31,10 @@ index 00b64996..59ade86a 100644
  
  protocol PresetActivationObserver: AnyObject {
      func presetActivated(context: TemporaryScheduleOverride.Context, duration: TemporaryScheduleOverride.Duration)
-@@ -219,6 +232,66 @@ final class LoopDataManager {
-     var settings: LoopSettings {
+@@ -220,6 +233,73 @@ final class LoopDataManager {
          lockedSettings.value
      }
-+
+ 
 +    //Patch for updating nightscout with preMeal info
 +    private func preMeal(preMealTargetRange: TemporaryScheduleOverride?) {
 +        do { // Silence all errors and return
@@ -71,8 +70,15 @@ index 00b64996..59ade86a 100644
 +                ]
 +            }
 +
-+            guard let url = URL(string: "\(credentials.url)/api/v1/treatments.json") else { return }
-+            var request = URLRequest(url: url)
++            guard var urlComponents = URLComponents(url: credentials.url, resolvingAgainstBaseURL: false) else {return }
++            if urlComponents.path.hasSuffix("/") {
++                urlComponents.path = String(urlComponents.path.dropLast())
++            }
++            urlComponents.path += "/api/v1/treatments.json"
++
++            guard let apiURL = urlComponents.url else { return }
++
++            var request = URLRequest(url: apiURL)
 +            request.httpMethod = "POST"
 +            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 +            request.httpBody = try? JSONSerialization.data(withJSONObject: json)
@@ -95,10 +101,11 @@ index 00b64996..59ade86a 100644
 +            return
 +        }
 +    }
- 
++
      func mutateSettings(_ changes: (_ settings: inout LoopSettings) -> Void) {
          var oldValue: LoopSettings!
-@@ -238,6 +311,7 @@ final class LoopDataManager {
+         let newValue = lockedSettings.mutate { settings in
+@@ -238,6 +318,7 @@ final class LoopDataManager {
          if newValue.preMealOverride != oldValue.preMealOverride {
              // The prediction isn't actually invalid, but a target range change requires recomputing recommended doses
              predictedGlucose = nil
