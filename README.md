@@ -11,12 +11,11 @@ When you have downloaded loop, the terminal window should look something like th
 Paste (⌘ V) the command in your terminal and hit enter.
 ![Loop](img/cd_done.png)
 
-### Run the command below to select patches you want to apply or revert
+### Run the command below to select the patches you want to apply or revert
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
-Copy the command using the copy-button and paste (⌘ V) the command in your terminal and hit enter.
-![Loop](img/copy_command.png)
+Copy the command using the copy-button (see picture blow) and paste (⌘ V) it in your terminal and hit enter. ![Loop](img/copy_command.png)
 
 &nbsp;
 # Loop patches
