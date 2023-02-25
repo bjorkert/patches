@@ -6,13 +6,13 @@ function menu() {
 
     # Check if the patch has already been applied
     if git apply --reverse --check "${mytmpdir}/${patch_file}.patch" --directory="${directory}" >/dev/null 2>&1; then
-        echo "${name} - Patch has already been applied"
+        echo "${name} *** Patch is applied ***"
     else
         # Try to apply the patch
         if git apply --check "${mytmpdir}/${patch_file}.patch" --directory="${directory}" >/dev/null 2>&1; then
             echo "${name}" # - Patch can be applied
         else
-            echo "${name} - Patch can't be applied"
+            echo "${name} !!! Patch can't be applied !!!"
         fi
     fi
 }
@@ -24,7 +24,7 @@ function apply() {
     echo 
     # Check if the patch has already been applied
     if git apply --reverse --check "${patch_file}" --directory="${directory}" >/dev/null 2>&1; then
-        echo "${name} - Patch has already been applied"
+        echo "${name} *** Patch is applied ***"
     else
         # Try to apply the patch
         if git apply --check "${patch_file}" --directory="${directory}" >/dev/null 2>&1; then
@@ -37,7 +37,7 @@ function apply() {
                 echo "Failed!"
             fi
         else
-            echo "${name} - Patch can't be applied"
+            echo "${name} !!! Patch can't be applied !!!"
         fi
     fi
     echo
@@ -54,9 +54,9 @@ function revertmenu() {
     else
         # Try to apply the patch
         if git apply --check "${mytmpdir}/${patch_file}.patch" --directory="${directory}" >/dev/null 2>&1; then
-            echo "${name} - Patch is not applied"
+            echo "${name} *** Patch is not applied ***"
         else
-            echo "${name} - Reverting or applying the patch is not possible."
+            echo "${name} !!! Reverting or applying the patch is not possible !!!"
         fi
     fi
 }
@@ -77,9 +77,9 @@ function revert() {
         fi
     else
         if git apply --check "${mytmpdir}/${patch_file}.patch" --directory="${directory}" >/dev/null 2>&1; then
-            echo "${name} - Patch is not applied"
+            echo "${name} *** Patch is not applied ***"
         else
-            echo "${name} - Reverting or applying the patch is not possible."
+            echo "${name} !!! Reverting or applying the patch is not possible !!!"
         fi
     fi
     echo
