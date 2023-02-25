@@ -11,20 +11,9 @@ When you have downloaded loop, the terminal window should look something like th
 Paste (⌘ V) the command in your terminal and hit enter.
 ![Loop](img/cd_done.png)
 
-### Select patch
-Now select the patch you want to apply and copy the command for that patch, there is a button for copying the command:
-![Loop](img/copy.png)
-
-### Apply patch
-Go back to the terminal and paste (⌘ V) the command and hit enter. There should not be any output from the command, just a new line as in the picture below.
-![Loop](img/paste.png)
-
-### Repeat "Select patch" and "Apply patch" for any additional patches you want to apply.  
-&nbsp;
-### Reverting
-As long as the patch is unchanged since you applied it, it can easily be reverted. Just add a "-R" to the command, for example:
+### Run the command below to select patches you want to apply or revert
 ```console
-git apply -R --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/manualBolusThreshold.patch)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
 
 &nbsp;
@@ -32,45 +21,21 @@ git apply -R --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bj
 
 ## Manual Bolus Threshold
 Separate suspend threshold for meal and manual bolusing, 54 mg/dL (3 mmol/L) - this value can easily be modified after the patch is applied.
-```console
-git apply --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/manualBolusThreshold.patch)
-```
 &nbsp;
-## Overlapping override bug
+## Overlapping override bugfix
 There is a bug in Loop when it comes to overlapping overrides. If you manage to get overlapping overrides, Loop will crash and will not be able to start again until 48 hours has passed. I have made a pull request to resolve this (https://github.com/LoopKit/LoopKit/pull/449), a fix is available here until the pull request is approved.
-```console
-git apply --directory=LoopKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/overlappingOverride.patch)
-```
 &nbsp;
 ## Omnipod Dash Site Change
 Update Nightscout with a "Pump Site Change"-treatment when replacing a pod. This results in updated "CAGE"-pill and pod change reminder in Loop Follow.
-```console
-git apply --directory=OmniBLE <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/siteChange.patch)
-```
 &nbsp;
 ## Dexcom G6 - Sensor Change
 Update Nightscout automatically with the "Sensor Change" treatment when you replace a sensor. This leads to an updated "SAGE" pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
-```console
-git apply --directory=CGMBLEKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/g6_sensor_start.patch)
-```
 &nbsp;
 ## Dexcom G6 - Upload Readings
 This patch makes the "Upload readings" default On when changing transmitter.
-```console
-git apply --directory=CGMBLEKit <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/upload_readings.patch)
-```
 &nbsp;
 ## PreMeal - Visualize PreMeal in Nightscout
 Show PreMeal in Nightscout as Temporary target.
-```console
-git apply --directory=Loop <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/preMeal.patch)
-```
-&nbsp;
-## Apply all patches at once
-One command to rule them all. All patches above will be appled at once.
-```console
-/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/loop.sh)"
-```
 &nbsp;
 &nbsp;
 # Loop Follow patches

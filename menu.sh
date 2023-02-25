@@ -126,11 +126,11 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     folder=()
 
     add_patch "Manual bolus threshold" "manualBolusThreshold" "Loop"
-    add_patch "Overlapping override" "overlappingOverride" "LoopKit"
-    add_patch "Dash site change" "siteChange" "OmniBLE"
-    add_patch "G6 Sensor start" "g6_sensor_start" "CGMBLEKit"
-    add_patch "G6 Upload readings" "upload_readings" "CGMBLEKit"
-    add_patch "PreMeal" "preMeal" "Loop"
+    add_patch "Overlapping override bugfix" "overlappingOverride" "LoopKit"
+    add_patch "Omnipod Dash Site Change" "siteChange" "OmniBLE"
+    add_patch "Dexcom G6 - Sensor Change" "g6_sensor_start" "CGMBLEKit"
+    add_patch "Dexcom G6 - Upload Readings" "upload_readings" "CGMBLEKit"
+    add_patch "PreMeal - Visualize PreMeal in Nightscout" "preMeal" "Loop"
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir
