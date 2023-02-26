@@ -1,64 +1,68 @@
-These patches are designed for the pre-patched loop and learn version of Loop 3.0 using the Xcode build method.
+# Loop patches
+These patches are intended for the pre-patched loop and learn version of Loop 3.0 master, which can be built using the Xcode method.
 
 ## How to apply a patch:
-First, download Loop using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
+First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
 
-### Download Loop
-When you have downloaded loop, the terminal window should look something like the picture below. Note the underlined text in the picture, select and copy (⌘ C) that text from your terminal, include the whole row from "cd" all the way to "LoopWorkspace".
+After downloading Loop, your terminal window should resemble the image below. Please note the underlined text in the picture, and select and copy (⌘ C) the entire row from "cd" to "LoopWorkspace".
 ![Loop](img/build_loop_done.png)
 
 ### Change folder
-Paste (⌘ V) the command in your terminal and hit enter.
+Please paste (⌘ V) the command into your terminal and press Enter.
 ![Loop](img/cd_done.png)
 
-### Run the command below to select the patches you want to apply or revert
+### To select the patches you want to apply or revert, run the following command:
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
-Copy the command using the copy-button (see picture blow) and paste (⌘ V) it in your terminal and hit enter. ![Loop](img/copy_command.png)
+Copy the command using the copy-button (as shown in the picture below), paste (⌘ V) it into your terminal, and press Enter. ![Loop](img/copy_command.png)
 
 &nbsp;
-# Loop patches
 
 ## Manual Bolus Threshold
-Separate suspend threshold for meal and manual bolusing, 54 mg/dL (3 mmol/L) - this value can easily be modified after the patch is applied.
+This patch provides a separate suspend threshold for meal and manual bolusing at 54 mg/dL (3 mmol/L), which can be easily modified after applying the patch.
 &nbsp;
 ## Overlapping override bugfix
-There is a bug in Loop when it comes to overlapping overrides. If you manage to get overlapping overrides, Loop will crash and will not be able to start again until 48 hours has passed. I have made a pull request to resolve this (https://github.com/LoopKit/LoopKit/pull/449), a fix is available here until the pull request is approved.
+Currently, Loop has a bug that causes it to crash if there are overlapping overrides. If this happens, Loop won't be able to restart until 48 hours have passed. However, a solution is available through a pull request I made to resolve this issue (https://github.com/LoopKit/LoopKit/pull/449), which has been merged into the Loop dev branch. You can use the available patch until the fix becomes available in the main version.
 &nbsp;
 ## Omnipod Dash Site Change
-Update Nightscout with a "Pump Site Change"-treatment when replacing a pod. This results in updated "CAGE"-pill and pod change reminder in Loop Follow.
+When replacing a pod, this patch ensures that Loop updates Nightscout with a 'Pump Site Change'-treatment, resulting in an updated 'CAGE'-pill and pod change reminder in Loop Follow. Please note that this will happen on the next pod change after the patch is applied, and the date of current pod will not be updated.
 &nbsp;
 ## Dexcom G6 - Sensor Change
-Update Nightscout automatically with the "Sensor Change" treatment when you replace a sensor. This leads to an updated "SAGE" pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
+When replacing a sensor, this patch ensures that Loop updates Nightscout with a 'Sensor Change' treatment, resulting in an updated 'SAGE' pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
 &nbsp;
 ## Dexcom G6 - Upload Readings
-This patch makes the "Upload readings" default On when changing transmitter.
+This patch automatically sets the 'Upload readings' option to 'On' by default when changing the transmitter. This change addresses the common issue of users forgetting to change the setting, resulting in no blood sugar values being sent to Nightscout.
 &nbsp;
 ## View PreMeal in Nightscout
-Show PreMeal in Nightscout as Temporary target.
+Due to overrides now being combinable with PreMeal, PreMeal is no longer sent as an override to Nightscout, leaving Nightscout without any indication that PreMeal is active. This patch addresses this issue by sending a Temporary target to Nightscout when PreMeal is turned on, resulting in a visual band in Nightscout to indicate that PreMeal is active. When PreMeal is turned off, the temporary target band is also ended.
 &nbsp;
 &nbsp;
 # Loop Follow patches
-These patches are designed for the dev branch of Loop Follow using the Xcode build method.
+These patches are intended for the development branch of Loop Follow and can be built using the Xcode build method.
+## How to apply a patch:
+First, download Loop Follow dev by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
 
-You need to be in the "LoopFollow" folder when these commands are executed.
+After downloading Loop Follow, navigate to the directory where Loop Follow was downloaded. Please note that the following command is just an example, and you will need to modify the command to reflect the actual directory where Loop Follow was downloaded:
+```console
+cd ~/Downloads/BuildLoopFollow/LoopFollow-Dev-230226-1601/LoopFollow
+```
+
+### Run the command below to select the patches you want to apply or revert
+```console
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/lf.sh)"
+```
+Please use the copy-button (as shown in the picture below) to copy the command, then paste it (⌘ V) into your terminal and press Enter. ![Loop](img/copy_command.png)
 
 ## Blue Line -30 minutes
-A blue line 30 minutes back in time to get a clearer view of what boluses has started to give effect.
-I described it in this issue, resulted in some modifications but but the blue line. https://github.com/jonfawcett/LoopFollow/issues/110
-```console
-git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/lf_blue_line.patch)
-```
+A blue line is added 30 minutes prior to the current time to provide a clearer view of the boluses that have started to take effect.
+I described it in this issue, resulted in some modifications but not the blue line. https://github.com/jonfawcett/LoopFollow/issues/110
 &nbsp;
 ## Protein line -90 minutes
-Another line, this one 90 minutes back in time to get an indication of if a meal is causing a bs raise 90 minutes later due to protein.
-```console
-git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/proteinLine.patch)
-```
+An additional line is added to the graph 90 minutes prior to the current time to indicate if a meal is causing a blood sugar rise 90 minutes later, which may be due to protein that typically takes about 90 minutes to show its effects.
 &nbsp;
 ## Duplicate blood glucose entries
-Loop 3 is uploading duplicate svg entries, this messes up the LoopFollow graphs and statistics. This can also happen if you have both bridge enabled in nightscout as well as Loop "upload readings". This patch solves that problem by filtering out 1 reading per 5 minutes. I have made a pull request for this fix: https://github.com/jonfawcett/LoopFollow/pull/178
-```console
-git apply <<< $(curl -s https://raw.githubusercontent.com/bjorkert/patches/master/removeSVGDuplicates.patch)
-```
+Loop 3 may upload duplicate svg entries, which can cause issues with LoopFollow's graphs and statistics. This issue may also arise when both bridge is enabled in Nightscout and Loop 'upload readings' are used. This patch resolves the issue by filtering out one reading every five minutes. I have submitted a pull request for this fix, which can be found at https://github.com/jonfawcett/LoopFollow/pull/178.
+&nbsp;
+## Carbs Today
+This patch adds a new item to the 'Information Table' called 'Carbs Today.' This feature provides a sum of all registered carbs since midnight to help you keep track of your child's carb intake for the day. However, please note that this feature may not be useful if you are using fake carbs.
