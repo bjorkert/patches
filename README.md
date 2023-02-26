@@ -1,5 +1,5 @@
 # Loop patches
-These patches are intended for the pre-patched loop and learn version of Loop 3.0 master, which can be built using the Xcode method.
+These patches are intended for the pre-patched loop and learn version of Loop 3.0 main using the Xcode build method.
 
 ## How to apply a patch:
 First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
@@ -15,7 +15,8 @@ Please paste (⌘ V) the command into your terminal and press Enter.
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
-Copy the command using the copy-button (as shown in the picture below), paste (⌘ V) it into your terminal, and press Enter. ![Loop](img/copy_command.png)
+Copy the command using the copy-button (as shown in the picture below), paste (⌘ V) it into your terminal, and press Enter. 
+![Loop](img/copy_command.png)
 
 &nbsp;
 
@@ -52,7 +53,8 @@ cd ~/Downloads/BuildLoopFollow/LoopFollow-Dev-230226-1601/LoopFollow
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/lf.sh)"
 ```
-Please use the copy-button (as shown in the picture below) to copy the command, then paste it (⌘ V) into your terminal and press Enter. ![Loop](img/copy_command.png)
+Please use the copy-button (as shown in the picture below) to copy the command, then paste it (⌘ V) into your terminal and press Enter.
+![Loop](img/copy_command.png)
 
 ## Blue Line -30 minutes
 A blue line is added 30 minutes prior to the current time to provide a clearer view of the boluses that have started to take effect.
