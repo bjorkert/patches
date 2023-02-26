@@ -15,7 +15,8 @@ Please paste (⌘ V) the command into your terminal and press Enter.
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
-Copy the command using the copy-button (as shown in the picture below), paste (⌘ V) it into your terminal, and press Enter. 
+Copy the command using the copy-button (as shown in the picture below), paste (⌘ V) it into your terminal, and press Enter.
+ 
 ![Loop](img/copy_command.png)
 
 &nbsp;
@@ -54,6 +55,7 @@ cd ~/Downloads/BuildLoopFollow/LoopFollow-Dev-230226-1601/LoopFollow
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/lf.sh)"
 ```
 Please use the copy-button (as shown in the picture below) to copy the command, then paste it (⌘ V) into your terminal and press Enter.
+
 ![Loop](img/copy_command.png)
 
 ## Blue Line -30 minutes
