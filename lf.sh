@@ -127,6 +127,7 @@ if [ $(basename $PWD) = "LoopFollow" ] && [ -d "LoopFollow" ]; then
     add_patch "Protein line -90 minutes" "proteinLine" ""
     add_patch "Duplicate blood glucose entries" "removeSVGDuplicates" ""
     add_patch "Carbs Today" "carbstoday" ""
+    add_patch "PreMeal" "lf_temporary_target" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir

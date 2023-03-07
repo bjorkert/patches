@@ -70,3 +70,5 @@ Loop 3 may upload duplicate svg entries, which can cause issues with LoopFollow'
 &nbsp;
 ## Carbs Today
 This patch adds a new item to the 'Information Table' called 'Carbs Today.' This feature provides a sum of all registered carbs since midnight to help you keep track of your child's carb intake for the day. However, please note that this feature may not be useful if you are using fake carbs.
+## PreMeal
+The graph displays the PreMeal period as an orange band located below the green override band.

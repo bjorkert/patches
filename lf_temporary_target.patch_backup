@@ -1,21 +1,35 @@
-From 1f86bc64cb7bd77dc2dee0ca57d950550daa254e Mon Sep 17 00:00:00 2001
+From 0d603bff56fd171d0605233c2fe4859e7e600436 Mon Sep 17 00:00:00 2001
 From: bjorkert <jonas@bjorkert.se>
-Date: Tue, 7 Mar 2023 17:22:37 +0100
+Date: Tue, 7 Mar 2023 15:44:11 +0100
 Subject: [PATCH] =?UTF-8?q?=E2=80=9Clf=5Ftemporary=5Ftarget=E2=80=9D?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 ---
- LoopFollow/Controllers/Graphs.swift           | 86 +++++++++++++++++++
- LoopFollow/Controllers/NightScout.swift       | 85 ++++++++++++++++++
- .../ViewControllers/MainViewController.swift  |  1 +
- LoopFollow/helpers/Chart.swift                |  7 ++
- LoopFollow/helpers/DataStructs.swift          |  8 ++
- 5 files changed, 187 insertions(+)
+ .../UserInterfaceState.xcuserstate            | Bin 41929 -> 41929 bytes
+ LoopFollow/Controllers/Graphs.swift           |  90 +++++++++++++++++-
+ LoopFollow/Controllers/NightScout.swift       |  89 ++++++++++++++++-
+ .../ViewControllers/MainViewController.swift  |   1 +
+ LoopFollow/helpers/Chart.swift                |   7 ++
+ LoopFollow/helpers/DataStructs.swift          |   8 ++
+ 6 files changed, 191 insertions(+), 4 deletions(-)
+
+diff --git a/LoopFollow.xcworkspace/xcuserdata/jonas.xcuserdatad/UserInterfaceState.xcuserstate b/LoopFollow.xcworkspace/xcuserdata/jonas.xcuserdatad/UserInterfaceState.xcuserstate
+index 727b141f4e1f0e7a44bcbb60798dbe0a665462c3..ee4c2cdd576696db69caa3227e40f35bb8afbb9d 100644
+GIT binary patch
+delta 110
+zcmV-!0FnR6#{$X60<eWN4g!Y*{(#AW0Y0JviUa|Z(KHs5sWc}60khFG$vXs=-^+Qk
+zo^Uo369R_{zJSSr16ra0(gXp3J%Ir~lb|XXlmCMh0RgiVgcK16i!_cjlQfmHFO_)>
+Q2ik+(gW`kav#+8W0cBn*%K!iX
+
+delta 111
+zcmX?koay9orVXto!pwh}+8Y_|8cr@^VPNWNWVCNMJ$Z(S1tY`eizX+nSvnabj5g0J
+zFcTK$+6z?390gX$a0#T)cJcx(iOK()MSzM$T0{iddrbOFCYwy#tUtAqm;HA0-R4Kl
+LPdBe$B*h2-7DXzD
 
 diff --git a/LoopFollow/Controllers/Graphs.swift b/LoopFollow/Controllers/Graphs.swift
-index 485dd71..cdb8897 100644
+index 485dd71..6fa450e 100644
 --- a/LoopFollow/Controllers/Graphs.swift
 +++ b/LoopFollow/Controllers/Graphs.swift
 @@ -267,6 +267,20 @@ extension MainViewController {
@@ -39,18 +53,22 @@ index 485dd71..cdb8897 100644
          // Setup the chart data of all lines
          let data = LineChartData()
          
-@@ -282,6 +296,7 @@ extension MainViewController {
+@@ -282,7 +296,8 @@ extension MainViewController {
          data.append(lineResume) // Dataset 9
          data.append(lineSensor) // Dataset 10
          data.append(lineNote) // Dataset 11
+-        
 +        data.append(lineTemporaryTarget) // Dataset 12
-         
++
          data.setValueFont(UIFont.systemFont(ofSize: 12))
          
-@@ -1142,6 +1157,20 @@ extension MainViewController {
+         // Add marker popups for bolus and carbs
+@@ -1141,7 +1156,21 @@ extension MainViewController {
+         lineNote.axisDependency = YAxis.AxisDependency.right
          lineNote.valueFormatter = ChartYDataValueFormatter()
          lineNote.drawValuesEnabled = false
-         
+-        
++
 +        // Temporary Target
 +        var chartEntryTemporaryTarget = [ChartDataEntry]()
 +        let lineTemporaryTarget = LineChartDataSet(entries:chartEntryTemporaryTarget, label: "")
@@ -140,17 +158,19 @@ index 485dd71..cdb8897 100644
      func formatPillText(line1: String, time: TimeInterval) -> String {
          let dateFormatter = DateFormatter()
 diff --git a/LoopFollow/Controllers/NightScout.swift b/LoopFollow/Controllers/NightScout.swift
-index e846bfa..de8c36b 100644
+index e846bfa..c7d8ac5 100644
 --- a/LoopFollow/Controllers/NightScout.swift
 +++ b/LoopFollow/Controllers/NightScout.swift
-@@ -995,6 +995,7 @@ extension MainViewController {
+@@ -995,7 +995,8 @@ extension MainViewController {
          var resumePump: [[String:AnyObject]] = []
          var pumpSiteChange: [[String:AnyObject]] = []
          var cgmSensorStart: [[String:AnyObject]] = []
+-        
 +        var temporaryTarget: [[String:AnyObject]] = []
-         
++
          for i in 0..<entries.count {
              let entry = entries[i] as [String : AnyObject]?
+             switch entry?["eventType"] as! String {
 @@ -1023,6 +1024,8 @@ extension MainViewController {
                      pumpSiteChange.append(entry!)
                  case "Sensor Start":
@@ -174,10 +194,12 @@ index e846bfa..de8c36b 100644
                 if note.count > 0 {
                     processNotes(entries: note)
                 } else {
-@@ -1148,6 +1158,12 @@ extension MainViewController {
+@@ -1147,7 +1157,13 @@ extension MainViewController {
+             noteGraphData.removeAll()
              updateNotes()
          }
-     
+-    
++
 +        func clearOldTemporaryTarget()
 +        {
 +            noteGraphData.removeAll()
