@@ -39,6 +39,9 @@ This patch automatically sets the 'Upload readings' option to 'On' by default wh
 ## View PreMeal in Nightscout
 Due to overrides now being combinable with PreMeal, PreMeal is no longer sent as an override to Nightscout, leaving Nightscout without any indication that PreMeal is active. This patch addresses this issue by sending a Temporary target to Nightscout when PreMeal is turned on, resulting in a visual band in Nightscout to indicate that PreMeal is active. When PreMeal is turned off, the temporary target band is also ended.
 &nbsp;
+## Future carbs 90 minutes
+This patch makes it possible to enter carbs 90 minutes into the future in order to register carbs for protein and fat. Loop 3 limits the future time change allowed to 1 hour. Remember that Loop may increase insulin dosing for future carbs - make sure that they actually arrive and are not already taken care of by your basal.
+&nbsp;
 &nbsp;
 # Loop Follow patches
 These patches are intended for the development branch of Loop Follow and can be built using the Xcode build method.

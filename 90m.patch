@@ -1,0 +1,25 @@
+From 3fac163876b15474ff552f0a7adaed7d6f54bcf4 Mon Sep 17 00:00:00 2001
+From: bjorkert <jonas@bjorkert.se>
+Date: Fri, 10 Mar 2023 20:26:25 +0100
+Subject: [PATCH] 90m
+
+---
+ Loop/View Controllers/CarbEntryViewController.swift | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Loop/View Controllers/CarbEntryViewController.swift b/Loop/View Controllers/CarbEntryViewController.swift
+index 08355a2c..9c3e6cf2 100644
+--- a/Loop/View Controllers/CarbEntryViewController.swift	
++++ b/Loop/View Controllers/CarbEntryViewController.swift	
+@@ -435,7 +435,7 @@ final class CarbEntryViewController: LoopChartsTableViewController, Identifiable
+                         cell.datePicker.preferredDatePickerStyle = .wheels
+                     }
+                 #endif
+-                cell.datePicker.maximumDate = date.addingTimeInterval(.hours(1))
++                cell.datePicker.maximumDate = date.addingTimeInterval(.minutes(90))
+                 cell.datePicker.minimumDate = date.addingTimeInterval(.hours(-12))
+                 cell.datePicker.minuteInterval = 1
+                 cell.date = date
+-- 
+2.38.1
+
