@@ -1,0 +1,118 @@
+From 062792e3c74ee1f3b63aae5f3870d8b6034826ba Mon Sep 17 00:00:00 2001
+From: bjorkert <jonas@bjorkert.se>
+Date: Sun, 12 Mar 2023 09:56:55 +0100
+Subject: [PATCH] emoji clock
+
+---
+ lib/client/clock-client.js         | 54 ++++++++++++++++++++++++++++--
+ views/clockviews/clock-config.html |  1 +
+ views/clockviews/clock.html        |  2 +-
+ 3 files changed, 54 insertions(+), 3 deletions(-)
+
+diff --git a/lib/client/clock-client.js b/lib/client/clock-client.js
+index e5294e9b..761c810f 100644
+--- a/lib/client/clock-client.js
++++ b/lib/client/clock-client.js
+@@ -108,6 +108,8 @@ client.render = function render () {
+   // Insert the delta value text.
+   $('.dt').html(deltaDisplayValue);
+ 
++  let bgNum = parseFloat(rec.mgdl);
++
+   // Color background
+   if (bgColor) {
+ 
+@@ -123,8 +125,6 @@ client.render = function render () {
+     let bgTargetBottom = client.settings.thresholds.bgTargetBottom;
+     let bgTargetTop = client.settings.thresholds.bgTargetTop;
+ 
+-    let bgNum = parseFloat(rec.mgdl);
+-
+     // Threshold background coloring.
+     if (bgNum < bgLow) {
+       $('body').css('background-color', red);
+@@ -156,6 +156,56 @@ client.render = function render () {
+   // Insert the BG value text, toggle stale if necessary.
+   $('.sg').toggleClass('stale', thresholdReached).html(displayValue);
+ 
++  var em;  
++  if (thresholdReached) {
++    em='🤷';
++  } else if (bgNum <= 40) { //2,2
++    em='❌';
++  } else if (bgNum <= 54) { //3
++    em='🥶';
++  } else if (bgNum <= 72) { //4
++    em='😱';
++  } else if (bgNum <= 97) {  //5,4
++    em='😊';
++  } else if (displayValue == '100' || displayValue == '5.5') { //5,5
++    em='🦄';
++  } else if (bgNum <= 101) { //5,6 
++    em='🥇';
++  } else if (bgNum <= 108) { //6
++    em='😎';
++  } else if (bgNum <= 126) { //7
++    em='🥳';
++  } else if (bgNum <= 144) { //8
++    em='🤔';
++  } else if (bgNum <= 162) { //9
++    em='😳';
++  } else if (bgNum <= 180) { //10
++    em='😵‍💫';
++  } else if (bgNum <= 198) { //11
++    em='🎃';
++  } else if (bgNum <= 216) { //12
++    em='🙀';
++  } else if (bgNum <= 234) { //13
++    em='🔥';
++  } else if (bgNum <= 252) { //14
++    em='😬';
++  } else if (bgNum <= 270) { //15
++    em='😡';
++  } else if (bgNum <= 288) { //16
++    em='🤬';
++  } else if (bgNum <= 306) { //17
++    em='🥵';
++  } else if (bgNum <= 324) { //18
++    em='🫣';
++  } else if (bgNum <= 342) { //19
++    em='😩';
++  } else if (bgNum <= 360) { //20
++    em='🤯';
++  } else {
++    em='👿';
++  }
++  $('.em').html(em);
++
+   if (thresholdReached || alwaysShowTime) {
+     let staleTimeText;
+     if (elapsedMins === 0) {
+diff --git a/views/clockviews/clock-config.html b/views/clockviews/clock-config.html
+index fff92bb6..3a21be3e 100644
+--- a/views/clockviews/clock-config.html
++++ b/views/clockviews/clock-config.html
+@@ -22,6 +22,7 @@
+         <p><input type="button" class="elmt" id="cfg_dt" name="dt" value="Add SGV delta"> Size: <input type="number" class="size" id="cfg_dt_size" name="cfg_dt_size" min="1" max="99" value="14"></p>
+         <p><input type="button" class="elmt" id="cfg_ar" name="ar" value="Add trend arrow"> Size: <input type="number" class="size" id="cfg_ar_size" name="cfg_ar_size" min="1" max="99" value="30"></p>
+         <p><input type="button" class="elmt" id="cfg_tm" name="tm" value="Add time"> Size: <input type="number" class="size" id="cfg_tm_size" name="cfg_tm_size" min="1" max="99" value="10"></p>
++        <p><input type="button" class="elmt" id="cfg_em" name="em" value="Add emoji"> Size: <input type="number" class="size" id="cfg_em_size" name="cfg_em_size" min="1" max="99" value="40"></p>
+         <p><input type="button" class="undo" id="cfg_undo" name="undo" value="Remove last element"></p>
+         <a id="clocklink" target=”_blank” href="/clock/cy10">Open my clock view!</a>
+         <div id="facename">cy10</div>
+diff --git a/views/clockviews/clock.html b/views/clockviews/clock.html
+index 2893aec3..b1b45449 100644
+--- a/views/clockviews/clock.html
++++ b/views/clockviews/clock.html
+@@ -19,7 +19,7 @@
+   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-180x180.png">
+ 
+   <style type="text/css">
+-    @import url("//fonts.googleapis.com/css?family=Open+Sans:700");
++    @import url("//fonts.googleapis.com/css?family=Open+Sans:700|Noto+Color+Emoji");
+     <%- include('clock-shared.css', {}); %>
+     <%if (face === 'config') { %>
+     <%- include('clock-config.css', {}); %>
+-- 
+2.39.2
+

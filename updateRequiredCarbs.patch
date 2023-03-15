@@ -1,0 +1,69 @@
+Submodule Loop contains modified content
+diff --git a/Loop/Loop/Managers/LoopDataManager.swift b/Loop/Loop/Managers/LoopDataManager.swift
+index 00b64996..f17a2457 100644
+--- a/Loop/Loop/Managers/LoopDataManager.swift
++++ b/Loop/Loop/Managers/LoopDataManager.swift
+@@ -484,6 +484,54 @@ final class LoopDataManager {
+             }
+         }
+     }
++
++    fileprivate var requiredCarbs: HKQuantity? {
++        didSet {
++            let number = requiredCarbs?.doubleValue(for: .gram()) ?? 0
++            DispatchQueue.main.async {
++                UIApplication.shared.applicationIconBadgeNumber = Int(number)
++            }
++        }
++    }
++
++    /// The carb sensitivity schedule, applying recent overrides relative to the current moment in time.
++    /// This is measured in <blood glucose>/gram
++    var carbSensitivityScheduleApplyingOverrideHistory: CarbSensitivitySchedule? {
++        guard let crSchedule = carbRatioScheduleApplyingOverrideHistory,
++              var isfSchedule = insulinSensitivityScheduleApplyingOverrideHistory
++        else {
++            return nil
++        }
++        // FreeAPS specific fix:
++        //   This prevents the timeZone bug in future and allows recovery with rebuild
++        if crSchedule.timeZone != isfSchedule.timeZone {
++            isfSchedule.timeZone = crSchedule.timeZone
++        }
++
++        return .carbSensitivitySchedule(insulinSensitivitySchedule: isfSchedule, carbRatioSchedule: crSchedule)
++    }
++
++    func updateRequiredCarbs() {
++        dispatchPrecondition(condition: .onQueue(dataAccessQueue))
++        guard
++            let unit = glucoseStore.preferredUnit,
++            let predictedGlucose = self.predictedGlucose?.last,
++            let csfSchedule = carbSensitivityScheduleApplyingOverrideHistory,
++            let glucoseTargetRange = settings.effectiveGlucoseTargetRangeSchedule()
++        else {
++            requiredCarbs = nil
++            return
++        }
++        let delta = glucoseTargetRange.minQuantity(at: predictedGlucose.startDate).doubleValue(for: unit)
++        - predictedGlucose.quantity.doubleValue(for: unit)
++        guard delta > 0 else {
++            requiredCarbs = nil
++            return
++        }
++
++        let now = Date()
++        requiredCarbs = HKQuantity(unit: .gram(), doubleValue: delta / csfSchedule.value(at: now))
++    }
+ }
+ 
+ // MARK: Background task management
+@@ -1071,6 +1119,8 @@ extension LoopDataManager {
+         dosingDecision.predictedGlucose = predictedGlucose
+         dosingDecision.automaticDoseRecommendation = recommendedAutomaticDose?.recommendation
+ 
++        updateRequiredCarbs()
++
+         // If the glucose prediction hasn't changed, then nothing has changed, so just use pre-existing recommendations
+         guard predictedGlucose == nil else {
+ 
