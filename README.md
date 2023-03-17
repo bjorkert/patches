@@ -1,5 +1,5 @@
 # Loop patches
-These patches are intended for the pre-patched loop and learn version of Loop 3.0 main using the Xcode build method.
+These patches are intended for the pre-patched loop and learn version of Loop 3.2.
 
 ## How to apply a patch:
 First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
