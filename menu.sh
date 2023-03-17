@@ -124,7 +124,6 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     folder=()
 
     add_patch "Manual bolus threshold" "manualBolusThreshold" "Loop"
-    add_patch "Overlapping override bugfix" "overlappingOverride" "LoopKit"
     add_patch "Omnipod Dash Site Change" "siteChange" "OmniBLE"
     add_patch "Dexcom G6 - Sensor Change" "g6_sensor_start" "CGMBLEKit"
     add_patch "Dexcom G6 - Upload Readings" "upload_readings" "CGMBLEKit"
