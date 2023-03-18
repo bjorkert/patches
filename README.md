@@ -17,9 +17,6 @@ Copy the command using the copy-button (as shown in the picture below), paste (â
 ## Manual Bolus Threshold
 This patch provides a separate suspend threshold for meal and manual bolusing at 54 mg/dL (3 mmol/L), which can be easily modified after applying the patch.
 &nbsp;
-## Overlapping override bugfix
-Currently, Loop has a bug that causes it to crash if there are overlapping overrides. If this happens, Loop won't be able to restart until 48 hours have passed. However, a solution is available through a pull request I made to resolve this issue (https://github.com/LoopKit/LoopKit/pull/449), which has been merged into the Loop dev branch. You can use the available patch until the fix becomes available in the main version.
-&nbsp;
 ## Omnipod Dash Site Change
 When replacing a pod, this patch ensures that Loop updates Nightscout with a 'Pump Site Change'-treatment, resulting in an updated 'CAGE'-pill and pod change reminder in Loop Follow. Please note that this will happen on the next pod change after the patch is applied, and the date of current pod will not be updated.
 &nbsp;
