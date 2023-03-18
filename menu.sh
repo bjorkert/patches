@@ -96,6 +96,16 @@ function cleanup {
   tput cuu1 && tput el
 }
 
+if [ "$(basename "$PWD")" != "LoopWorkspace" ]; then
+    target_dir="$(find /Users/$USER/Downloads/BuildLoop -type d -name LoopWorkspace -exec dirname {} \; -exec stat -f "%B %N" {} \; | sort -rn | awk '{print $2}' | head -n 1)"
+    if [ -z "$target_dir" ]; then
+        echo "Error: No folder containing LoopWorkspace found."
+    else
+        echo "Navigating to $target_dir"
+        cd "$target_dir"
+    fi
+fi
+
 echo "Loop patch selection"
 
 # Verify current folder
@@ -129,6 +139,7 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     add_patch "Dexcom G6 - Upload Readings" "upload_readings" "CGMBLEKit"
     add_patch "View PreMeal in Nightscout" "preMeal" "Loop"
     add_patch "Future carbs 90 minutes" "90m" "Loop"
+    add_patch "Required carbs" "updateRequiredCarbs" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir
@@ -180,6 +191,5 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
         fi
     done
 else
-    echo "This command must be executed from the LoopWorkspace folder."
     exit 1
 fi

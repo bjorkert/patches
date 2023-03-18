@@ -4,14 +4,7 @@ These patches are intended for the pre-patched loop and learn version of Loop 3.
 ## How to apply a patch:
 First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
 
-After downloading Loop, your terminal window should resemble the image below. Please note the underlined text in the picture, and select and copy (⌘ C) the entire row from "cd" to "LoopWorkspace".
-![Loop](img/build_loop_done.png)
-
-### Change folder
-Please paste (⌘ V) the command into your terminal and press Enter.
-![Loop](img/cd_done.png)
-
-### To select the patches you want to apply or revert, run the following command:
+### To select apply (or revert) patches, run the following command:
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/menu.sh)"
 ```
@@ -41,6 +34,9 @@ Due to overrides now being combinable with PreMeal, PreMeal is no longer sent as
 &nbsp;
 ## Future carbs 90 minutes
 This patch makes it possible to enter carbs 90 minutes into the future in order to register carbs for protein and fat. Loop 3 limits the future time change allowed to 1 hour. Remember that Loop may increase insulin dosing for future carbs - make sure that they actually arrive and are not already taken care of by your basal.
+&nbsp;
+## Display Required Carbs on App Badge
+Install this patch to see a small number on your Loop app badge, indicating the predicted amount of glucose needed to maintain your target range. This value is calculated using your current Carb Ratio (CR) and Insulin Sensitivity Factor (ISF). The code originates from the latest FreeAPS version and should not be impacted by the time zone bug.
 &nbsp;
 &nbsp;
 # Loop Follow patches
