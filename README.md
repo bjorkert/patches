@@ -1,5 +1,5 @@
 # Loop patches
-These patches are intended for Loop 3.2.
+These patches are intended for Loop 3.0 or 3.2, with or without loop n learn patches.
 
 ## How to apply a patch:
 First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
