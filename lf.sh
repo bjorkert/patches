@@ -96,6 +96,16 @@ function cleanup {
   tput cuu1 && tput el
 }
 
+if [ "$(basename "$PWD")" != "LoopFollow" ]; then
+    target_dir="$(find /Users/$USER/Downloads/BuildLoopFollow -maxdepth 2 -type d -name LoopFollow -exec dirname {} \; -exec stat -f "%B %N" {} \; | sort -rn | awk '{print $2}' | head -n 1)"
+    if [ -z "$target_dir" ]; then
+        echo "Error: No folder containing LoopFollow found."
+    else
+        echo "Navigating to $target_dir"
+        cd "$target_dir"
+    fi
+fi
+
 echo "Loop Follow patch selection"
 
 # Verify current folder
@@ -179,6 +189,5 @@ if [ $(basename $PWD) = "LoopFollow" ] && [ -d "LoopFollow" ]; then
         fi
     done
 else
-    echo "This command must be executed from the LoopFollow folder."
     exit 1
 fi
