@@ -37,15 +37,9 @@ Install this patch to see a small number on your Loop app badge, indicating the 
 &nbsp;
 &nbsp;
 # Loop Follow patches
-These patches are intended for the development branch of Loop Follow and can be built using the Xcode build method.
+These patches are intended for the development branch of Loop Follow.
 ## How to apply a patch:
 First, download Loop Follow dev by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
-
-After downloading Loop Follow, navigate to the directory where Loop Follow was downloaded. Please note that the following command is just an example, and you will need to modify the command to reflect the actual directory where Loop Follow was downloaded:
-```console
-cd ~/Downloads/BuildLoopFollow/LoopFollow-Dev-230226-1601/LoopFollow
-```
-
 ### Run the command below to select the patches you want to apply or revert
 ```console
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/bjorkert/patches/master/lf.sh)"
