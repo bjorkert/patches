@@ -1,6 +1,6 @@
-From 304f39cfd0e1212dae89fad3b0f68a4d55e82216 Mon Sep 17 00:00:00 2001
+From 0c2845e3b4c4043295bb2762f4e7ad52575908cf Mon Sep 17 00:00:00 2001
 From: bjorkert <jonas@bjorkert.se>
-Date: Sun, 26 Feb 2023 15:56:54 +0100
+Date: Wed, 22 Mar 2023 09:08:22 +0100
 Subject: [PATCH] =?UTF-8?q?=E2=80=9Ccarbstoday=E2=80=9D?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -14,7 +14,7 @@ Content-Transfer-Encoding: 8bit
  4 files changed, 85 insertions(+), 5 deletions(-)
 
 diff --git a/LoopFollow/Controllers/NightScout.swift b/LoopFollow/Controllers/NightScout.swift
-index cc228c9..b1b7c56 100644
+index e846bfa..7043da4 100644
 --- a/LoopFollow/Controllers/NightScout.swift
 +++ b/LoopFollow/Controllers/NightScout.swift
 @@ -9,10 +9,14 @@
@@ -27,13 +27,13 @@ index cc228c9..b1b7c56 100644
      
 +    //NS Carbs Struct
 +    struct carbsData: Codable {
-+        var carbs: Double
++        var carbs: Double?
 +    }
 +
      //NS Cage Struct
      struct cageData: Codable {
          var created_at: String
-@@ -668,6 +672,76 @@ extension MainViewController {
+@@ -648,6 +652,76 @@ extension MainViewController {
          }
      }
      
@@ -99,7 +99,7 @@ index cc228c9..b1b7c56 100644
 +            return
 +        }
 +
-+        let totalCarbs = data.reduce(0.0) { $0 + $1.carbs }
++        let totalCarbs = data.reduce(0.0) { $0 + ($1.carbs ?? 0.0) }
 +        let resultString = String(format: "%.0f", totalCarbs)
 +
 +        tableData[10].value = resultString
@@ -165,5 +165,5 @@ index f22f2ac..d918658 100644
      
      // Nightscout Settings
 -- 
-2.38.1
+2.39.2
 
