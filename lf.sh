@@ -138,6 +138,7 @@ if [ $(basename $PWD) = "LoopFollow" ] && [ -d "LoopFollow" ]; then
     add_patch "Duplicate blood glucose entries" "removeSVGDuplicates" ""
     add_patch "Carbs Today" "carbstoday" ""
     add_patch "PreMeal" "lf_temporary_target" ""
+    add_patch "Speak BG" "speakBG" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir
