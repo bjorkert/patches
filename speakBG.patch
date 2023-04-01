@@ -1,0 +1,86 @@
+diff --git a/LoopFollow/Controllers/Alarms.swift b/LoopFollow/Controllers/Alarms.swift
+index e292ec2..3ee3fd7 100644
+--- a/LoopFollow/Controllers/Alarms.swift
++++ b/LoopFollow/Controllers/Alarms.swift
+@@ -848,13 +848,24 @@ extension MainViewController {
+     }
+     
+     
+-    func speakBG(sgv: Int) {
+-           var speechSynthesizer = AVSpeechSynthesizer()
+-           var speechUtterance: AVSpeechUtterance = AVSpeechUtterance(string: "Current BG is " + bgUnits.toDisplayUnits(String(sgv)))
+-           speechUtterance.rate = AVSpeechUtteranceMaximumSpeechRate / 2
+-           speechUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+-           speechSynthesizer.speak(speechUtterance)
+-       }
++    func speakBG(currentValue: Int, previousValue: Int) {
++        let bloodGlucoseDifference = currentValue - previousValue
++        let negligibleThreshold = 3
++        let differenceText: String
++
++        if abs(bloodGlucoseDifference) <= negligibleThreshold {
++            differenceText = "stable"
++        } else {
++            let direction = bloodGlucoseDifference < 0 ? "down" : "up"
++            let absoluteDifference = bgUnits.toDisplayUnits(String(abs(bloodGlucoseDifference)))
++            differenceText = "\(direction) \(absoluteDifference)"
++        }
++
++        let announcementText = "Current BG is \(bgUnits.toDisplayUnits(String(currentValue))), and it is \(differenceText)"
++        let speechUtterance = AVSpeechUtterance(string: announcementText)
++        speechUtterance.voice = AVSpeechSynthesisVoice(language: "en-US")
++        speechSynthesizer.speak(speechUtterance)
++    }
+     
+     func isOnPhoneCall() -> Bool {
+         /*
+diff --git a/LoopFollow/Controllers/NightScout.swift b/LoopFollow/Controllers/NightScout.swift
+index 906be8f..4d31895 100644
+--- a/LoopFollow/Controllers/NightScout.swift
++++ b/LoopFollow/Controllers/NightScout.swift
+@@ -295,6 +295,10 @@ extension MainViewController {
+                 self.startBGTimer(time: 300 - secondsAgo + Double(UserDefaultsRepository.bgUpdateDelay.value))
+                 let timerVal = 310 - secondsAgo
+                 print("##### started 5:10 bg timer: \(timerVal)")
++                self.updateBadge(val: data[0].sgv)
++                if UserDefaultsRepository.speakBG.value {
++                    self.speakBG(currentValue: data[0].sgv, previousValue: data[1].sgv)
++                }
+             }
+         }
+         
+@@ -305,12 +309,6 @@ extension MainViewController {
+             bgData.removeFirst()
+             
+         } else {
+-            if data.count > 0 {
+-                self.updateBadge(val: data[data.count - 1].sgv)
+-                if UserDefaultsRepository.speakBG.value {
+-                    speakBG(sgv: data[data.count - 1].sgv)
+-                }
+-            }
+             return
+         }
+         
+@@ -385,7 +383,6 @@ extension MainViewController {
+                 snoozerDelta = "+" + bgUnits.toDisplayUnits(String(deltaBG))
+                 self.latestDeltaString = "+" + String(deltaBG)
+             }
+-            self.updateBadge(val: latestBG)
+             
+             // Snoozer Display
+             guard let snoozer = self.tabBarController!.viewControllers?[2] as? SnoozeViewController else { return }
+diff --git a/LoopFollow/ViewControllers/MainViewController.swift b/LoopFollow/ViewControllers/MainViewController.swift
+index 51ffca9..a8a96d4 100644
+--- a/LoopFollow/ViewControllers/MainViewController.swift
++++ b/LoopFollow/ViewControllers/MainViewController.swift
+@@ -37,7 +37,8 @@ class MainViewController: UIViewController, UITableViewDataSource, ChartViewDele
+     @IBOutlet weak var statsView: UIView!
+     @IBOutlet weak var smallGraphHeightConstraint: NSLayoutConstraint!
+     
+-      
++    let speechSynthesizer = AVSpeechSynthesizer()
++
+     // Data Table class
+     class infoData {
+         public var name: String
