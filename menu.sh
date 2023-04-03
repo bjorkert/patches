@@ -140,6 +140,7 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     add_patch "View PreMeal in Nightscout" "preMeal" "Loop"
     add_patch "Future carbs 90 minutes" "90m" "Loop"
     add_patch "Required carbs" "updateRequiredCarbs" ""
+    add_patch "Dash Fast Forward" "fast_forward" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir

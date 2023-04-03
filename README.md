@@ -35,6 +35,9 @@ This patch makes it possible to enter carbs 90 minutes into the future in order 
 ## Display Required Carbs on App Badge
 Install this patch to see a small number on your Loop app badge, indicating the predicted amount of glucose needed to maintain your target range. This value is calculated using your current Carb Ratio (CR) and Insulin Sensitivity Factor (ISF). The code originates from the latest FreeAPS version and should not be impacted by the time zone bug.
 &nbsp;
+## Dash Fast Forward
+When pairing a new pod, the abundance of unnecessary clicks and confirmations in Loop 3.x can be quite cumbersome. As an experienced looper, you likely breeze through them as quickly as possible without actually reading them. This patch streamlines the process by eliminating the unnecessary dialogs and retaining only the essential ones—"Pair Pod" and "Insert Cannula"—where actual actions take place. As a result, the patch effectively reduces clicks and enhances the user experience.
+&nbsp;
 &nbsp;
 # Loop Follow patches
 These patches are intended for the development branch of Loop Follow.
