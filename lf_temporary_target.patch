@@ -1,19 +1,3 @@
-From 1f86bc64cb7bd77dc2dee0ca57d950550daa254e Mon Sep 17 00:00:00 2001
-From: bjorkert <jonas@bjorkert.se>
-Date: Tue, 7 Mar 2023 17:22:37 +0100
-Subject: [PATCH] =?UTF-8?q?=E2=80=9Clf=5Ftemporary=5Ftarget=E2=80=9D?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
----
- LoopFollow/Controllers/Graphs.swift           | 86 +++++++++++++++++++
- LoopFollow/Controllers/NightScout.swift       | 85 ++++++++++++++++++
- .../ViewControllers/MainViewController.swift  |  1 +
- LoopFollow/helpers/Chart.swift                |  7 ++
- LoopFollow/helpers/DataStructs.swift          |  8 ++
- 5 files changed, 187 insertions(+)
-
 diff --git a/LoopFollow/Controllers/Graphs.swift b/LoopFollow/Controllers/Graphs.swift
 index 485dd71..cdb8897 100644
 --- a/LoopFollow/Controllers/Graphs.swift
@@ -140,7 +124,7 @@ index 485dd71..cdb8897 100644
      func formatPillText(line1: String, time: TimeInterval) -> String {
          let dateFormatter = DateFormatter()
 diff --git a/LoopFollow/Controllers/NightScout.swift b/LoopFollow/Controllers/NightScout.swift
-index e846bfa..de8c36b 100644
+index e846bfa..c81a0f3 100644
 --- a/LoopFollow/Controllers/NightScout.swift
 +++ b/LoopFollow/Controllers/NightScout.swift
 @@ -995,6 +995,7 @@ extension MainViewController {
@@ -187,7 +171,7 @@ index e846bfa..de8c36b 100644
      // NS Temp Basal Response Processor
      func processNSBasals(entries: [[String:AnyObject]]) {
          self.clearLastInfoData(index: 2)
-@@ -1749,4 +1765,73 @@ extension MainViewController {
+@@ -1749,4 +1765,74 @@ extension MainViewController {
          }
          
      }
@@ -236,7 +220,8 @@ index e846bfa..de8c36b 100644
 +                    if endDateTimeStamp < dateTimeUtils.getTimeIntervalNHoursAgo(N: graphHours) {
 +                        endDateTimeStamp = dateTimeUtils.getTimeIntervalNHoursAgo(N: graphHours)
 +                    }
-+                    duration = endDateTimeStamp - dateTimeStamp
++
++                    duration = max(min(endDateTimeStamp - dateTimeStamp, 60*60), 0)
 +                }
 +                else
 +                {
@@ -246,7 +231,7 @@ index e846bfa..de8c36b 100644
 +
 +                // Skip temporary targets that aren't 5 minutes long. This prevents overlapping that causes bars to not display.
 +                if duration < 300 { continue }
-+
++                print(duration)
 +                guard let enteredBy = currentEntry?["enteredBy"] as? String else { continue }
 +                guard let reason = currentEntry?["reason"] as? String else { continue }
 +
@@ -308,6 +293,3 @@ index 20809b3..1b8f2be 100644
 +        var reason: String
 +    }
  }
--- 
-2.38.1
-
