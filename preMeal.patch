@@ -1,295 +1,118 @@
-diff --git a/LoopFollow/Controllers/Graphs.swift b/LoopFollow/Controllers/Graphs.swift
-index 485dd71..cdb8897 100644
---- a/LoopFollow/Controllers/Graphs.swift
-+++ b/LoopFollow/Controllers/Graphs.swift
-@@ -267,6 +267,20 @@ extension MainViewController {
-         lineNote.valueFormatter = ChartYDataValueFormatter()
-         lineNote.drawValuesEnabled = false
-         
-+        // Temporary Target
-+        var chartEntryTemporaryTarget = [ChartDataEntry]()
-+        let lineTemporaryTarget = LineChartDataSet(entries:chartEntryTemporaryTarget, label: "")
-+        lineTemporaryTarget.setDrawHighlightIndicators(false)
-+        lineTemporaryTarget.lineWidth = 0
-+        lineTemporaryTarget.drawFilledEnabled = true
-+        lineTemporaryTarget.fillFormatter = TemporaryTargetFillFormatter()
-+        lineTemporaryTarget.fillColor = NSUIColor.systemOrange
-+        lineTemporaryTarget.fillAlpha = 0.6
-+        lineTemporaryTarget.drawCirclesEnabled = false
-+        lineTemporaryTarget.axisDependency = YAxis.AxisDependency.right
-+        lineTemporaryTarget.highlightEnabled = true
-+        lineTemporaryTarget.drawValuesEnabled = false
+From 7e707f9ba0b19396c00be0d76af5992c8a59ab80 Mon Sep 17 00:00:00 2001
+From: bjorkert <jonas@bjorkert.se>
+Date: Sat, 25 Feb 2023 19:58:27 +0100
+Subject: [PATCH] preMeal
+
+---
+ Loop/Managers/LoopDataManager.swift | 81 +++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+
+diff --git a/Loop/Managers/LoopDataManager.swift b/Loop/Managers/LoopDataManager.swift
+index 00b64996..bafe4052 100644
+--- a/Loop/Managers/LoopDataManager.swift
++++ b/Loop/Managers/LoopDataManager.swift
+@@ -12,6 +12,19 @@ import HealthKit
+ import LoopKit
+ import LoopCore
+ import WidgetKit
++import CommonCrypto
 +
-         // Setup the chart data of all lines
-         let data = LineChartData()
-         
-@@ -282,6 +296,7 @@ extension MainViewController {
-         data.append(lineResume) // Dataset 9
-         data.append(lineSensor) // Dataset 10
-         data.append(lineNote) // Dataset 11
-+        data.append(lineTemporaryTarget) // Dataset 12
-         
-         data.setValueFont(UIFont.systemFont(ofSize: 12))
-         
-@@ -1142,6 +1157,20 @@ extension MainViewController {
-         lineNote.valueFormatter = ChartYDataValueFormatter()
-         lineNote.drawValuesEnabled = false
-         
-+        // Temporary Target
-+        var chartEntryTemporaryTarget = [ChartDataEntry]()
-+        let lineTemporaryTarget = LineChartDataSet(entries:chartEntryTemporaryTarget, label: "")
-+        lineTemporaryTarget.setDrawHighlightIndicators(false)
-+        lineTemporaryTarget.lineWidth = 0
-+        lineTemporaryTarget.drawFilledEnabled = true
-+        lineTemporaryTarget.fillFormatter = TemporaryTargetFillFormatter()
-+        lineTemporaryTarget.fillColor = NSUIColor.systemOrange
-+        lineTemporaryTarget.fillAlpha = 0.6
-+        lineTemporaryTarget.drawCirclesEnabled = false
-+        lineTemporaryTarget.axisDependency = YAxis.AxisDependency.right
-+        lineTemporaryTarget.highlightEnabled = true
-+        lineTemporaryTarget.drawValuesEnabled = false
-+
-         // Setup the chart data of all lines
-         let data = LineChartData()
-         data.append(lineBG) // Dataset 0
-@@ -1156,6 +1185,7 @@ extension MainViewController {
-         data.append(lineResume) // Dataset 9
-         data.append(lineSensor) // Dataset 10
-         data.append(lineNote) // Dataset 11
-+        data.append(lineTemporaryTarget) // Dataset 12
-         
-         BGChartFull.highlightPerDragEnabled = true
-         BGChartFull.leftAxis.enabled = false
-@@ -1240,6 +1270,62 @@ extension MainViewController {
-             BGChartFull.notifyDataSetChanged()
-         }
-     }
-+
-+    func updateTemporaryTargetGraph() {
-+        let dataIndex = 12
-+        let yTop: Double = Double(topBG - 25)
-+        let yBottom: Double = Double(topBG - 45)
-+        let chart = BGChart.lineData!.dataSets[dataIndex] as! LineChartDataSet
-+        let smallChart = BGChartFull.lineData!.dataSets[dataIndex] as! LineChartDataSet
-+        chart.clear()
-+        smallChart.clear()
-+        let thisData = temporaryTargetGraphData
-+
-+        for i in 0..<thisData.count{
-+            let thisItem = thisData[i]
-+            var labelText = thisItem.reason + "\r\n"
-+            if thisItem.enteredBy.count > 0 {
-+                labelText += "\r\nEntered By: " + thisItem.enteredBy
-+            }
-+
-+            // Start Dot
-+            // Shift dots 30 seconds to create an empty 0 space between consecutive temps
-+            let preStartDot = ChartDataEntry(x: Double(thisItem.date), y: yBottom, data: labelText)
-+            BGChart.data?.dataSets[dataIndex].addEntry(preStartDot)
-+            if UserDefaultsRepository.smallGraphTreatments.value {
-+                BGChartFull.data?.dataSets[dataIndex].addEntry(preStartDot)
-+            }
-+
-+            let startDot = ChartDataEntry(x: Double(thisItem.date + 1), y: yTop, data: labelText)
-+            BGChart.data?.dataSets[dataIndex].addEntry(startDot)
-+            if UserDefaultsRepository.smallGraphTreatments.value {
-+                BGChartFull.data?.dataSets[dataIndex].addEntry(startDot)
-+            }
-+
-+            // End Dot
-+            let endDot = ChartDataEntry(x: Double(thisItem.endDate - 2), y: yTop, data: labelText)
-+            BGChart.data?.dataSets[dataIndex].addEntry(endDot)
-+            if UserDefaultsRepository.smallGraphTreatments.value {
-+                BGChartFull.data?.dataSets[dataIndex].addEntry(endDot)
-+            }
-+
-+            // Post end dot
-+            let postEndDot = ChartDataEntry(x: Double(thisItem.endDate - 1), y: yBottom, data: labelText)
-+            BGChart.data?.dataSets[dataIndex].addEntry(postEndDot)
-+            if UserDefaultsRepository.smallGraphTreatments.value {
-+                BGChartFull.data?.dataSets[dataIndex].addEntry(postEndDot)
-+            }
++extension String {
++    func sha1() -> String {
++        let data = Data(self.utf8)
++        var digest = [UInt8](repeating: 0, count:Int(CC_SHA1_DIGEST_LENGTH))
++        data.withUnsafeBytes {
++            _ = CC_SHA1($0.baseAddress, CC_LONG(data.count), &digest)
 +        }
-+
-+        BGChart.data?.dataSets[dataIndex].notifyDataSetChanged()
-+        BGChart.data?.notifyDataChanged()
-+        BGChart.notifyDataSetChanged()
-+        if UserDefaultsRepository.smallGraphTreatments.value {
-+            BGChartFull.data?.dataSets[dataIndex].notifyDataSetChanged()
-+            BGChartFull.data?.notifyDataChanged()
-+            BGChartFull.notifyDataSetChanged()
-+        }
-+    }
-     
-     func formatPillText(line1: String, time: TimeInterval) -> String {
-         let dateFormatter = DateFormatter()
-diff --git a/LoopFollow/Controllers/NightScout.swift b/LoopFollow/Controllers/NightScout.swift
-index e846bfa..c81a0f3 100644
---- a/LoopFollow/Controllers/NightScout.swift
-+++ b/LoopFollow/Controllers/NightScout.swift
-@@ -995,6 +995,7 @@ extension MainViewController {
-         var resumePump: [[String:AnyObject]] = []
-         var pumpSiteChange: [[String:AnyObject]] = []
-         var cgmSensorStart: [[String:AnyObject]] = []
-+        var temporaryTarget: [[String:AnyObject]] = []
-         
-         for i in 0..<entries.count {
-             let entry = entries[i] as [String : AnyObject]?
-@@ -1023,6 +1024,8 @@ extension MainViewController {
-                     pumpSiteChange.append(entry!)
-                 case "Sensor Start":
-                     cgmSensorStart.append(entry!)
-+                case "Temporary Target":
-+                    temporaryTarget.append(entry!)
-                 default:
-                     print("No Match: \(String(describing: entry))")
-             }
-@@ -1085,6 +1088,13 @@ extension MainViewController {
-                        clearOldSensor()
-                    }
-                }
-+               if temporaryTarget.count > 0 {
-+                   processTemporaryTarget(entries: temporaryTarget)
-+               } else {
-+                   if temporaryTargetGraphData.count > 0 {
-+                       clearOldTemporaryTarget()
-+                   }
-+               }
-                if note.count > 0 {
-                    processNotes(entries: note)
-                } else {
-@@ -1148,6 +1158,12 @@ extension MainViewController {
-             updateNotes()
-         }
-     
-+        func clearOldTemporaryTarget()
-+        {
-+            noteGraphData.removeAll()
-+            updateTemporaryTargetGraph()
-+        }
-+
-     // NS Temp Basal Response Processor
-     func processNSBasals(entries: [[String:AnyObject]]) {
-         self.clearLastInfoData(index: 2)
-@@ -1749,4 +1765,74 @@ extension MainViewController {
-         }
-         
-     }
-+
-+    // Temporary Target Processor
-+    func processTemporaryTarget(entries: [[String:AnyObject]]) {
-+        if UserDefaultsRepository.debugLog.value { self.writeDebugLog(value: "Process: Temporary Target") }
-+        temporaryTargetGraphData.removeAll()
-+
-+        let dateFormatter = DateFormatter()
-+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-+        dateFormatter.locale = Locale(identifier: "en_US")
-+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-+
-+        let graphHours = 24 * UserDefaultsRepository.downloadDays.value
-+        var date: String
-+        var strippedZone: String
-+        for i in 0..<entries.count {
-+            let currentEntry = entries[entries.count - 1 - i] as [String : AnyObject]?
-+            if currentEntry?["duration"] as! Int > 0 {
-+                var duration: Double = 5.0
-+                if currentEntry?["created_at"] != nil {
-+                    date = currentEntry?["created_at"] as! String
-+                } else {
-+                    return
-+                }
-+                // Fix for FreeAPS milliseconds in timestamp
-+                strippedZone = String(date.dropLast())
-+                strippedZone = strippedZone.components(separatedBy: ".")[0]
-+
-+                let dateString = dateFormatter.date(from: strippedZone)
-+                var dateTimeStamp = dateString!.timeIntervalSince1970
-+                if dateTimeStamp < dateTimeUtils.getTimeIntervalNHoursAgo(N: graphHours) {
-+                    dateTimeStamp = dateTimeUtils.getTimeIntervalNHoursAgo(N: graphHours)
-+                }
-+
-+                if(entries.count - 2 - i >= 0)
-+                {
-+                    let nextEntry = entries[entries.count - 2 - i] as [String : AnyObject]?
-+                    date = nextEntry?["created_at"] as! String
-+                    strippedZone = String(date.dropLast())
-+                    strippedZone = strippedZone.components(separatedBy: ".")[0]
-+
-+                    let endDateString = dateFormatter.date(from: strippedZone)
-+                    var endDateTimeStamp = endDateString!.timeIntervalSince1970
-+                    if endDateTimeStamp < dateTimeUtils.getTimeIntervalNHoursAgo(N: graphHours) {
-+                        endDateTimeStamp = dateTimeUtils.getTimeIntervalNHoursAgo(N: graphHours)
-+                    }
-+
-+                    duration = max(min(endDateTimeStamp - dateTimeStamp, 60*60), 0)
-+                }
-+                else
-+                {
-+                    duration = (currentEntry?["duration"] as? Double)!
-+                    duration = duration * 60
-+                }
-+
-+                // Skip temporary targets that aren't 5 minutes long. This prevents overlapping that causes bars to not display.
-+                if duration < 300 { continue }
-+                print(duration)
-+                guard let enteredBy = currentEntry?["enteredBy"] as? String else { continue }
-+                guard let reason = currentEntry?["reason"] as? String else { continue }
-+
-+                let endDate = dateTimeStamp + (duration)
-+
-+                let dot = DataStructs.temporaryTargetStruct(date: dateTimeStamp, endDate: endDate, duration: duration, enteredBy: enteredBy, reason: reason)
-+                temporaryTargetGraphData.append(dot)
-+            }
-+        }
-+        if UserDefaultsRepository.graphOtherTreatments.value {
-+            updateTemporaryTargetGraph()
-+        }
-+    }
- }
-diff --git a/LoopFollow/ViewControllers/MainViewController.swift b/LoopFollow/ViewControllers/MainViewController.swift
-index 2421e5a..cd9c626 100644
---- a/LoopFollow/ViewControllers/MainViewController.swift
-+++ b/LoopFollow/ViewControllers/MainViewController.swift
-@@ -107,6 +107,7 @@ class MainViewController: UIViewController, UITableViewDataSource, ChartViewDele
-     var bolusData: [bolusGraphStruct] = []
-     var carbData: [carbGraphStruct] = []
-     var overrideGraphData: [DataStructs.overrideStruct] = []
-+    var temporaryTargetGraphData: [DataStructs.temporaryTargetStruct] = []
-     var predictionData: [ShareGlucoseData] = []
-     var bgCheckData: [ShareGlucoseData] = []
-     var suspendGraphData: [DataStructs.timestampOnlyStruct] = []
-diff --git a/LoopFollow/helpers/Chart.swift b/LoopFollow/helpers/Chart.swift
-index 29fb604..e58851f 100644
---- a/LoopFollow/helpers/Chart.swift
-+++ b/LoopFollow/helpers/Chart.swift
-@@ -16,6 +16,13 @@ final class OverrideFillFormatter: FillFormatter {
-     }
- }
- 
-+final class TemporaryTargetFillFormatter: FillFormatter {
-+    func getFillLinePosition(dataSet: Charts.LineChartDataSetProtocol, dataProvider: Charts.LineChartDataProvider) -> CGFloat {
-+        return CGFloat(dataSet.entryForIndex(0)!.y)
-+        //return 375
++        let hexBytes = digest.map { String(format: "%02hhx", $0) }
++        return hexBytes.joined()
 +    }
 +}
-+
- final class basalFillFormatter: FillFormatter {
-     func getFillLinePosition(dataSet: Charts.LineChartDataSetProtocol, dataProvider: Charts.LineChartDataProvider) -> CGFloat {
-         return 0
-diff --git a/LoopFollow/helpers/DataStructs.swift b/LoopFollow/helpers/DataStructs.swift
-index 20809b3..1b8f2be 100644
---- a/LoopFollow/helpers/DataStructs.swift
-+++ b/LoopFollow/helpers/DataStructs.swift
-@@ -48,4 +48,12 @@ class DataStructs {
-         var sgv: Float
+ 
+ protocol PresetActivationObserver: AnyObject {
+     func presetActivated(context: TemporaryScheduleOverride.Context, duration: TemporaryScheduleOverride.Duration)
+@@ -220,6 +233,73 @@ final class LoopDataManager {
+         lockedSettings.value
      }
-     
-+    //Temporary Target  Struct
-+    struct temporaryTargetStruct: Codable {
-+        var date: TimeInterval
-+        var endDate: TimeInterval
-+        var duration: Double
-+        var enteredBy: String
-+        var reason: String
+ 
++    //Patch for updating nightscout with preMeal info
++    private func preMeal(preMealTargetRange: TemporaryScheduleOverride?) {
++        do { // Silence all errors and return
++            let now = Date()
++
++            let keychain = KeychainManager()
++            let credentials = try keychain.getInternetCredentials(account: "NightscoutAPI")
++
++            let formatter = ISO8601DateFormatter()
++            formatter.timeZone = TimeZone(abbreviation: "UTC")
++            let dateString = formatter.string(from: now)
++
++            let json: [String: Any]
++
++            if let targetRange = preMealTargetRange?.settings.targetRange {
++                json = [
++                    "enteredBy": "Loop",
++                    "created_at": dateString,
++                    "eventType": "Temporary Target",
++                    "duration" : 60,
++                    "reason" : "Pre-Meal",
++                    "targetTop" : targetRange.upperBound.doubleValue(for: .milligramsPerDeciliter),
++                    "targetBottom" : targetRange.lowerBound.doubleValue(for: .milligramsPerDeciliter),
++                    "secret": credentials.password.sha1()
++                ]
++            } else {
++                json = [
++                    "enteredBy": "Loop",
++                    "created_at": dateString,
++                    "eventType": "Temporary Target",
++                    "duration" : 0,
++                    "secret": credentials.password.sha1()
++                ]
++            }
++
++            guard var urlComponents = URLComponents(url: credentials.url, resolvingAgainstBaseURL: false) else {return }
++            if urlComponents.path.hasSuffix("/") {
++                urlComponents.path = String(urlComponents.path.dropLast())
++            }
++            urlComponents.path += "/api/v1/treatments.json"
++
++            guard let apiURL = urlComponents.url else { return }
++
++            var request = URLRequest(url: apiURL)
++            request.httpMethod = "POST"
++            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
++            request.httpBody = try? JSONSerialization.data(withJSONObject: json)
++
++            let task = URLSession.shared.dataTask(with: request) { data, response, error in
++                if let error = error {
++                    // Handle network error
++                    print("Error: \(error)")
++                    return
++                }
++
++                guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
++                    // Handle server error
++                    print("Error: Invalid response")
++                    return
++                }
++            }
++            task.resume()
++        } catch {
++            return
++        }
 +    }
- }
++
+     func mutateSettings(_ changes: (_ settings: inout LoopSettings) -> Void) {
+         var oldValue: LoopSettings!
+         let newValue = lockedSettings.mutate { settings in
+@@ -238,6 +318,7 @@ final class LoopDataManager {
+         if newValue.preMealOverride != oldValue.preMealOverride {
+             // The prediction isn't actually invalid, but a target range change requires recomputing recommended doses
+             predictedGlucose = nil
++            preMeal(preMealTargetRange: newValue.preMealOverride)
+         }
+ 
+         if newValue.scheduleOverride != oldValue.scheduleOverride {
+-- 
+2.38.1
+
