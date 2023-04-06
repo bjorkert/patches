@@ -69,3 +69,9 @@ The graph displays the PreMeal period as an orange band located below the green 
 &nbsp;
 ## Speak BG
 The Speak BG functionality had been experiencing issues for a while, but it has now returned, more powerful than ever. Not only will it announce the present BG value, but it will also provide the difference between the current reading and the previous one.
+&nbsp;
+## Home Screen Quick Action for Speak BG
+Now you can easily toggle the "Speak BG" feature on and off directly from your home screen! I've added a Home Screen Quick Action that lets you control the feature with just a 3D touch on the LoopFollow app icon.
+- **Home Screen Quick Action**: Quickly toggle "Speak BG" without going through the settings screens.
+- **Synced Settings**: The switch in General Settings and the Quick Action are in sync.
+- **Audible Confirmation**: Get instant feedback when you toggle the feature using the Quick Action.

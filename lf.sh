@@ -139,6 +139,7 @@ if [ $(basename $PWD) = "LoopFollow" ] && [ -d "LoopFollow" ]; then
     add_patch "Carbs Today" "carbstoday" ""
     add_patch "PreMeal" "lf_temporary_target" ""
     add_patch "Speak BG" "speakBG" ""
+    add_patch "Home Screen Quick Action for Speak BG" "lf_bgspeak_switch" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir
