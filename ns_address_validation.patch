@@ -1,0 +1,283 @@
+From dcea12dd57cc39777d5af6b4338a739df1babb6a Mon Sep 17 00:00:00 2001
+From: bjorkert <jonas@bjorkert.se>
+Date: Sun, 9 Apr 2023 18:51:01 +0200
+Subject: [PATCH] ns_address_validation
+
+---
+ LoopFollow.xcodeproj/project.pbxproj          |   4 +
+ .../SettingsViewController.swift              | 126 ++++++++++++------
+ LoopFollow/helpers/NightscoutUtils.swift      |  74 ++++++++++
+ 4 files changed, 194 insertions(+), 43 deletions(-)
+ create mode 100644 LoopFollow/helpers/NightscoutUtils.swift
+
+diff --git a/LoopFollow.xcodeproj/project.pbxproj b/LoopFollow.xcodeproj/project.pbxproj
+index ec47975..10d5136 100644
+--- a/LoopFollow.xcodeproj/project.pbxproj
++++ b/LoopFollow.xcodeproj/project.pbxproj
+@@ -8,6 +8,7 @@
+ 
+ /* Begin PBXBuildFile section */
+ 		3F1335F351590E573D8E6962 /* Pods_LoopFollow.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D55B42A22051DAD69E89D0 /* Pods_LoopFollow.framework */; };
++		DD07B5C929E2F9C400C6A635 /* NightscoutUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD07B5C829E2F9C400C6A635 /* NightscoutUtils.swift */; };
+ 		DD152D3B24C01B2300361FA2 /* InfoDisplaySettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD152D3A24C01B2300361FA2 /* InfoDisplaySettingsViewController.swift */; };
+ 		DD98F54424BCEFEE0007425A /* ShareClientExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98F54324BCEFEE0007425A /* ShareClientExtension.swift */; };
+ 		DDCF979424C0D380002C9752 /* UIViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCF979324C0D380002C9752 /* UIViewExtension.swift */; };
+@@ -174,6 +175,7 @@
+ /* Begin PBXFileReference section */
+ 		059B0FA59AABFE72FE13DDDA /* Pods-LoopFollow.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LoopFollow.release.xcconfig"; path = "Target Support Files/Pods-LoopFollow/Pods-LoopFollow.release.xcconfig"; sourceTree = "<group>"; };
+ 		A7D55B42A22051DAD69E89D0 /* Pods_LoopFollow.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LoopFollow.framework; sourceTree = BUILT_PRODUCTS_DIR; };
++		DD07B5C829E2F9C400C6A635 /* NightscoutUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUtils.swift; sourceTree = "<group>"; };
+ 		DD152D3A24C01B2300361FA2 /* InfoDisplaySettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoDisplaySettingsViewController.swift; sourceTree = "<group>"; };
+ 		DD98F54324BCEFEE0007425A /* ShareClientExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareClientExtension.swift; sourceTree = "<group>"; };
+ 		DDCF979324C0D380002C9752 /* UIViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewExtension.swift; sourceTree = "<group>"; };
+@@ -603,6 +605,7 @@
+ 				FC1BDD2E24A232A3001B652C /* DataStructs.swift */,
+ 				FCD2A27C24C9D044009F7B7B /* Globals.swift */,
+ 				FC8589BE252B54F500C8FC73 /* Mobileprovision.swift */,
++				DD07B5C829E2F9C400C6A635 /* NightscoutUtils.swift */,
+ 			);
+ 			path = helpers;
+ 			sourceTree = "<group>";
+@@ -866,6 +869,7 @@
+ 				FC3AE7B5249E8E0E00AAE1E0 /* LoopFollow.xcdatamodeld in Sources */,
+ 				FCC6886F2489A53800A0279D /* AppConstants.swift in Sources */,
+ 				FC16A97A24996673003D6245 /* NightScout.swift in Sources */,
++				DD07B5C929E2F9C400C6A635 /* NightscoutUtils.swift in Sources */,
+ 				FCC6886924898FB100A0279D /* UserDefaultsValueGroups.swift in Sources */,
+ 				FC16A97D24996747003D6245 /* Alarms.swift in Sources */,
+ 				FC16A97B249966A3003D6245 /* AlarmSound.swift in Sources */,
+diff --git a/LoopFollow/ViewControllers/SettingsViewController.swift b/LoopFollow/ViewControllers/SettingsViewController.swift
+index 16792ba..eb68742 100644
+--- a/LoopFollow/ViewControllers/SettingsViewController.swift
++++ b/LoopFollow/ViewControllers/SettingsViewController.swift
+@@ -14,7 +14,8 @@ import EventKitUI
+ class SettingsViewController: FormViewController {
+ 
+    var appStateController: AppStateController?
+-    
++    var statusLabelRow: LabelRow!
++
+     func showHideNSDetails() {
+         var isHidden = false
+         var isEnabled = true
+@@ -70,45 +71,56 @@ class SettingsViewController: FormViewController {
+                guard let value = row.value else { return }
+                UserDefaultsRepository.showNS.value = value
+        }
+-        <<< TextRow(){ row in
+-            row.title = "URL"
+-            row.placeholder = "https://mycgm.herokuapp.com"
+-            row.value = UserDefaultsRepository.url.value
+-            row.hidden = "$showNS == false"
+-        }.cellSetup { (cell, row) in
+-            cell.textField.autocorrectionType = .no
+-        }.onChange { row in
+-            guard let value = row.value else {
+-                UserDefaultsRepository.url.value = ""
+-                self.showHideNSDetails()
+-                return }
+-            // check the format of the URL entered by the user and trim away any spaces or "/" at the end
+-            var urlNSInput = value.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
+-            if urlNSInput.last == "/" {
+-                urlNSInput = String(urlNSInput.dropLast())
+-            }
+-            UserDefaultsRepository.url.value = urlNSInput.lowercased()
+-            // set the row value back to the correctly formatted URL so that the user immediately sees how it should have been written
+-            row.value = UserDefaultsRepository.url.value
+-            self.showHideNSDetails()
+-            globalVariables.nsVerifiedAlert = 0
+-            }
+-        <<< TextRow(){ row in
+-            row.title = "NS Token"
+-            row.placeholder = "Leave blank if not using tokens"
+-            row.value = UserDefaultsRepository.token.value
+-            row.hidden = "$showNS == false"
+-        }.cellSetup { (cell, row) in
+-            cell.textField.autocorrectionType = .no
+-        }.onChange { row in
+-            if row.value == nil {
+-                UserDefaultsRepository.token.value = ""
+-            }
+-            guard let value = row.value else { return }
+-            UserDefaultsRepository.token.value = value
+-            globalVariables.nsVerifiedAlert = 0
+-        }
+-       
++       <<< TextRow() { row in
++           row.title = "URL"
++           row.placeholder = "https://mycgm.herokuapp.com"
++           row.value = UserDefaultsRepository.url.value
++           row.hidden = "$showNS == false"
++       }.cellSetup { (cell, row) in
++           cell.textField.autocorrectionType = .no
++       }.onChange { row in
++           guard let value = row.value else {
++               UserDefaultsRepository.url.value = ""
++               self.showHideNSDetails()
++               return }
++           // check the format of the URL entered by the user and trim away any spaces or "/" at the end
++           var urlNSInput = value.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
++           if urlNSInput.last == "/" {
++               urlNSInput = String(urlNSInput.dropLast())
++           }
++           UserDefaultsRepository.url.value = urlNSInput.lowercased()
++           // set the row value back to the correctly formatted URL so that the user immediately sees how it should have been written
++           row.value = UserDefaultsRepository.url.value
++           self.showHideNSDetails()
++           globalVariables.nsVerifiedAlert = 0
++           
++           // Verify Nightscout URL and token
++           self.checkNightscoutStatus()
++       }
++       <<< TextRow() { row in
++           row.title = "NS Token"
++           row.placeholder = "Leave blank if not using tokens"
++           row.value = UserDefaultsRepository.token.value
++           row.hidden = "$showNS == false"
++       }.cellSetup { (cell, row) in
++           cell.textField.autocorrectionType = .no
++       }.onChange { row in
++           if row.value == nil {
++               UserDefaultsRepository.token.value = ""
++           }
++           guard let value = row.value else { return }
++           UserDefaultsRepository.token.value = value
++           globalVariables.nsVerifiedAlert = 0
++           
++           // Verify Nightscout URL and token
++           self.checkNightscoutStatus()
++       }
++       <<< LabelRow() { row in
++           row.title = "NS Status"
++           row.value = "Checking..."
++           statusLabelRow = row
++           row.hidden = "$showNS == false"
++       }
+        <<< SwitchRow("loopUser"){ row in
+            row.title = "Download Loop/FreeAPS Data"
+            row.tag = "loopUser"
+@@ -240,10 +252,38 @@ class SettingsViewController: FormViewController {
+             +++ Section(header: "App Expiration", footer: String(expiration.description))
+     
+         showHideNSDetails()
+-      
+-    
++       checkNightscoutStatus()
+     }
+     
++    func updateStatusLabel(error: NightscoutUtils.NightscoutError?) {
++        if let error = error {
++            switch error {
++            case .invalidURL:
++                statusLabelRow.value = "Invalid URL"
++            case .networkError:
++                statusLabelRow.value = "Network Error"
++            case .invalidToken:
++                statusLabelRow.value = "Invalid Token"
++            case .tokenRequired:
++                statusLabelRow.value = "Token Required"
++            case .siteNotFound:
++                statusLabelRow.value = "Site Not Found"
++            case .unknown:
++                statusLabelRow.value = "Unknown Error"
++            case .emptyAddress:
++                statusLabelRow.value = "Address Empty"
++            }
++        } else {
++            statusLabelRow.value = "OK"
++        }
++        statusLabelRow.updateCell()
++    }
+     
+-
++    func checkNightscoutStatus() {
++        NightscoutUtils.verifyURLAndToken(urlUser: UserDefaultsRepository.url.value, token: UserDefaultsRepository.token.value) { error in
++            DispatchQueue.main.async {
++                self.updateStatusLabel(error: error)
++            }
++        }
++    }
+ }
+diff --git a/LoopFollow/helpers/NightscoutUtils.swift b/LoopFollow/helpers/NightscoutUtils.swift
+new file mode 100644
+index 0000000..2cd6b58
+--- /dev/null
++++ b/LoopFollow/helpers/NightscoutUtils.swift
+@@ -0,0 +1,74 @@
++//
++//  NightscoutUtils.swift
++//  LoopFollow
++//
++//  Created by Jonas Björkert on 2023-04-09.
++//  Copyright © 2023 Jon Fawcett. All rights reserved.
++//
++
++import Foundation
++
++class NightscoutUtils {
++    enum NightscoutError {
++        case emptyAddress
++        case invalidURL
++        case networkError
++        case siteNotFound
++        case invalidToken
++        case tokenRequired
++        case unknown
++    }
++    
++    static func createURLRequest(url: String, token: String?, path: String) -> URLRequest? {
++        var requestURLString = "\(url)\(path)"
++        
++        if let token = token {
++            let encodedToken = token.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? token
++            requestURLString += "?token=\(encodedToken)"
++        }
++        
++        guard let requestURL = URL(string: requestURLString) else {
++            return nil
++        }
++        
++        var request = URLRequest(url: requestURL)
++        request.httpMethod = "GET"
++        return request
++    }
++    
++    static func verifyURLAndToken(urlUser: String, token: String?, completion: @escaping (NightscoutError?) -> Void) {
++        if urlUser.isEmpty {
++            completion(.emptyAddress)
++            return
++        }
++
++        guard let request = createURLRequest(url: urlUser, token: token, path: "/api/v1/status") else {
++            completion(.invalidURL)
++            return
++        }
++        
++        let task = URLSession.shared.dataTask(with: request) { data, response, error in
++            if let httpResponse = response as? HTTPURLResponse {
++                switch httpResponse.statusCode {
++                case 200:
++                    completion(nil)
++                case 401:
++                    if token == nil || token!.isEmpty {
++                        completion(.tokenRequired)
++                    } else {
++                        completion(.invalidToken) // Change this from "unauthorized"
++                    }
++                default:
++                    completion(.unknown)
++                }
++            }  else {
++                if let _ = error {
++                    completion(.siteNotFound)
++                } else {
++                    completion(.networkError)
++                }
++            }
++        }
++        task.resume()
++    }
++}
+-- 
+2.40.0
+

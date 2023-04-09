@@ -1,0 +1,109 @@
+From 292a76413c5d232f6a2ca5e8514b62de495ed203 Mon Sep 17 00:00:00 2001
+From: bjorkert <jonas@bjorkert.se>
+Date: Sat, 8 Apr 2023 20:40:43 +0200
+Subject: [PATCH] pull-to-refresh
+
+---
+ LoopFollow/Controllers/Timers.swift           | 10 ++++
+ .../ViewControllers/MainViewController.swift  | 47 +++++++++++++++++--
+ 2 files changed, 54 insertions(+), 3 deletions(-)
+
+diff --git a/LoopFollow/Controllers/Timers.swift b/LoopFollow/Controllers/Timers.swift
+index d3a810d..1c187eb 100644
+--- a/LoopFollow/Controllers/Timers.swift
++++ b/LoopFollow/Controllers/Timers.swift
+@@ -23,6 +23,16 @@ extension MainViewController {
+         if !alarmTimer.isValid { startAlarmTimer(time: 30) }
+     }
+     
++    func invalidateTimers() {
++        bgTimer.invalidate()
++        profileTimer.invalidate()
++        deviceStatusTimer.invalidate()
++        treatmentsTimer.invalidate()
++        cageSageTimer.invalidate()
++        minAgoTimer.invalidate()
++        calendarTimer.invalidate()
++        alarmTimer.invalidate()
++    }
+     
+     // min Ago Timer
+     func startMinAgoTimer(time: TimeInterval) {
+diff --git a/LoopFollow/ViewControllers/MainViewController.swift b/LoopFollow/ViewControllers/MainViewController.swift
+index 27189a0..8a99515 100644
+--- a/LoopFollow/ViewControllers/MainViewController.swift
++++ b/LoopFollow/ViewControllers/MainViewController.swift
+@@ -13,7 +13,7 @@ import ShareClient
+ import UserNotifications
+ import Photos
+ 
+-class MainViewController: UIViewController, UITableViewDataSource, ChartViewDelegate, UNUserNotificationCenterDelegate {
++class MainViewController: UIViewController, UITableViewDataSource, ChartViewDelegate, UNUserNotificationCenterDelegate, UIScrollViewDelegate {
+     
+     @IBOutlet weak var BGText: UILabel!
+     @IBOutlet weak var DeltaText: UILabel!
+@@ -36,7 +36,9 @@ class MainViewController: UIViewController, UITableViewDataSource, ChartViewDele
+     @IBOutlet weak var serverText: UILabel!
+     @IBOutlet weak var statsView: UIView!
+     @IBOutlet weak var smallGraphHeightConstraint: NSLayoutConstraint!
+-    
++    var refreshScrollView: UIScrollView!
++    var refreshControl: UIRefreshControl!
++
+     let speechSynthesizer = AVSpeechSynthesizer()
+ 
+     // Data Table class
+@@ -228,10 +230,49 @@ class MainViewController: UIViewController, UITableViewDataSource, ChartViewDele
+         // Load Startup Data
+         restartAllTimers()
+         
++        // Set up refreshScrollView for BGText
++        refreshScrollView = UIScrollView()
++        refreshScrollView.translatesAutoresizingMaskIntoConstraints = false
++        refreshScrollView.alwaysBounceVertical = true
++        view.addSubview(refreshScrollView)
++        
++        NSLayoutConstraint.activate([
++            refreshScrollView.leadingAnchor.constraint(equalTo: BGText.leadingAnchor),
++            refreshScrollView.trailingAnchor.constraint(equalTo: BGText.trailingAnchor),
++            refreshScrollView.topAnchor.constraint(equalTo: BGText.topAnchor),
++            refreshScrollView.bottomAnchor.constraint(equalTo: BGText.bottomAnchor)
++        ])
++        
++        refreshControl = UIRefreshControl()
++        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
++        refreshScrollView.addSubview(refreshControl)
++        
++        // Add this line to prevent scrolling in other directions
++        refreshScrollView.alwaysBounceVertical = true
++        
++        refreshScrollView.delegate = self
+     }
+     
+-
++    // Clean all timers and start new ones when refreshing
++    @objc func refresh() {
++        print("Refreshing")
++        MinAgoText.text = "Refreshing"
++        invalidateTimers()
++        restartAllTimers()
++        refreshControl.endRefreshing()
++    }
+     
++    // Scroll down BGText when refreshing
++    func scrollViewDidScroll(_ scrollView: UIScrollView) {
++        if scrollView == refreshScrollView {
++            let yOffset = scrollView.contentOffset.y
++            if yOffset < 0 {
++                BGText.transform = CGAffineTransform(translationX: 0, y: -yOffset)
++            } else {
++                BGText.transform = CGAffineTransform.identity
++            }
++        }
++    }
+     
+     override func viewWillAppear(_ animated: Bool) {
+         // set screen lock
+-- 
+2.40.0
+
