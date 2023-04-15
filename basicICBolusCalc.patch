@@ -1,0 +1,329 @@
+Submodule Loop contains modified content
+diff --git a/Loop/Loop.xcodeproj/project.pbxproj b/Loop/Loop.xcodeproj/project.pbxproj
+index 31b6ebff..eb80097c 100644
+--- a/Loop/Loop.xcodeproj/project.pbxproj
++++ b/Loop/Loop.xcodeproj/project.pbxproj
+@@ -4988,7 +4988,7 @@
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_DEBUG)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+ 				CURRENT_PROJECT_VERSION = 101;
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				GCC_DYNAMIC_NO_PIC = NO;
+ 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+ 				GENERATE_INFOPLIST_FILE = NO;
+@@ -5033,7 +5033,7 @@
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+ 				CURRENT_PROJECT_VERSION = 101;
+ 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+ 				GENERATE_INFOPLIST_FILE = NO;
+ 				INFOPLIST_FILE = StatusWidget/Info.plist;
+@@ -5287,7 +5287,7 @@
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_DEBUG)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+ 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+ 				INFOPLIST_FILE = Loop/Info.plist;
+ 				LD_RUNPATH_SEARCH_PATHS = (
+@@ -5315,7 +5315,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "$(LOOP_ENTITLEMENTS)";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_RELEASE)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+ 				INFOPLIST_FILE = Loop/Info.plist;
+ 				LD_RUNPATH_SEARCH_PATHS = (
+@@ -5340,7 +5340,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "WatchApp Extension/WatchApp Extension.entitlements";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_DEBUG)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				FRAMEWORK_SEARCH_PATHS = "";
+ 				INFOPLIST_FILE = "WatchApp Extension/Info.plist";
+ 				LD_RUNPATH_SEARCH_PATHS = (
+@@ -5367,7 +5367,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "WatchApp Extension/WatchApp Extension.entitlements";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_RELEASE)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				FRAMEWORK_SEARCH_PATHS = "";
+ 				INFOPLIST_FILE = "WatchApp Extension/Info.plist";
+ 				LD_RUNPATH_SEARCH_PATHS = (
+@@ -5394,7 +5394,7 @@
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = "$(APPICON_NAME)";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_DEBUG)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				FRAMEWORK_SEARCH_PATHS = "";
+ 				IBSC_MODULE = WatchApp_Extension;
+ 				INFOPLIST_FILE = WatchApp/Info.plist;
+@@ -5418,7 +5418,7 @@
+ 				ASSETCATALOG_COMPILER_APPICON_NAME = "$(APPICON_NAME)";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_RELEASE)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				FRAMEWORK_SEARCH_PATHS = "";
+ 				IBSC_MODULE = WatchApp_Extension;
+ 				INFOPLIST_FILE = WatchApp/Info.plist;
+@@ -5440,7 +5440,9 @@
+ 			buildSettings = {
+ 				APPLICATION_EXTENSION_API_ONLY = YES;
+ 				CLANG_ENABLE_OBJC_WEAK = YES;
++				CODE_SIGN_IDENTITY = "Apple Development";
+ 				DEFINES_MODULE = YES;
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+ 				FRAMEWORK_SEARCH_PATHS = "";
+ 				INFOPLIST_FILE = LoopCore/Info.plist;
+@@ -5465,7 +5467,9 @@
+ 			buildSettings = {
+ 				APPLICATION_EXTENSION_API_ONLY = YES;
+ 				CLANG_ENABLE_OBJC_WEAK = YES;
++				CODE_SIGN_IDENTITY = "Apple Development";
+ 				DEFINES_MODULE = YES;
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+ 				FRAMEWORK_SEARCH_PATHS = "";
+ 				INFOPLIST_FILE = LoopCore/Info.plist;
+@@ -5490,7 +5494,9 @@
+ 			buildSettings = {
+ 				APPLICATION_EXTENSION_API_ONLY = YES;
+ 				CLANG_ENABLE_OBJC_WEAK = YES;
++				CODE_SIGN_IDENTITY = "Apple Development";
+ 				DEFINES_MODULE = YES;
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+ 				INFOPLIST_FILE = LoopCore/Info.plist;
+ 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+@@ -5511,7 +5517,9 @@
+ 			buildSettings = {
+ 				APPLICATION_EXTENSION_API_ONLY = YES;
+ 				CLANG_ENABLE_OBJC_WEAK = YES;
++				CODE_SIGN_IDENTITY = "Apple Development";
+ 				DEFINES_MODULE = YES;
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+ 				INFOPLIST_FILE = LoopCore/Info.plist;
+ 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+@@ -5530,7 +5538,7 @@
+ 		43E2D8D71D20BF42004DA55F /* Debug */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				INFOPLIST_FILE = DoseMathTests/Info.plist;
+ 				LD_RUNPATH_SEARCH_PATHS = (
+ 					"$(inherited)",
+@@ -5545,7 +5553,7 @@
+ 		43E2D8D81D20BF42004DA55F /* Release */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				INFOPLIST_FILE = DoseMathTests/Info.plist;
+ 				LD_RUNPATH_SEARCH_PATHS = (
+ 					"$(inherited)",
+@@ -5561,7 +5569,7 @@
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				BUNDLE_LOADER = "$(TEST_HOST)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				INFOPLIST_FILE = LoopTests/Info.plist;
+ 				LD_RUNPATH_SEARCH_PATHS = (
+ 					"$(inherited)",
+@@ -5579,7 +5587,7 @@
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				BUNDLE_LOADER = "$(TEST_HOST)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				INFOPLIST_FILE = LoopTests/Info.plist;
+ 				LD_RUNPATH_SEARCH_PATHS = (
+ 					"$(inherited)",
+@@ -5600,7 +5608,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "Loop Status Extension/Loop Status Extension.entitlements";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_DEBUG)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = "Loop Status Extension/Info.plist";
+ 				LD_RUNPATH_SEARCH_PATHS = (
+@@ -5622,7 +5630,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "Loop Status Extension/Loop Status Extension.entitlements";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_RELEASE)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				ENABLE_BITCODE = NO;
+ 				INFOPLIST_FILE = "Loop Status Extension/Info.plist";
+ 				LD_RUNPATH_SEARCH_PATHS = (
+@@ -5642,7 +5650,9 @@
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				APPLICATION_EXTENSION_API_ONLY = YES;
++				CODE_SIGN_IDENTITY = "Apple Development";
+ 				DEFINES_MODULE = YES;
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+ 				INFOPLIST_FILE = LoopUI/Info.plist;
+ 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+@@ -5662,7 +5672,9 @@
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				APPLICATION_EXTENSION_API_ONLY = YES;
++				CODE_SIGN_IDENTITY = "Apple Development";
+ 				DEFINES_MODULE = YES;
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+ 				INFOPLIST_FILE = LoopUI/Info.plist;
+ 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+@@ -5684,7 +5696,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "Loop Intent Extension/Loop Intent Extension.entitlements";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_DEBUG)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				ENABLE_BITCODE = NO;
+ 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+ 				INFOPLIST_FILE = "Loop Intent Extension/Info.plist";
+@@ -5707,7 +5719,7 @@
+ 				CODE_SIGN_ENTITLEMENTS = "Loop Intent Extension/Loop Intent Extension.entitlements";
+ 				CODE_SIGN_IDENTITY = "$(LOOP_CODE_SIGN_IDENTITY_RELEASE)";
+ 				CODE_SIGN_STYLE = "$(LOOP_CODE_SIGN_STYLE)";
+-				DEVELOPMENT_TEAM = "$(LOOP_DEVELOPMENT_TEAM)";
++				DEVELOPMENT_TEAM = B29JQWWG9K;
+ 				ENABLE_BITCODE = NO;
+ 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+ 				INFOPLIST_FILE = "Loop Intent Extension/Info.plist";
+diff --git a/Loop/Loop/View Models/BolusEntryViewModel.swift b/Loop/Loop/View Models/BolusEntryViewModel.swift
+index bd2ecd47..9ea29128 100644
+--- a/Loop/Loop/View Models/BolusEntryViewModel.swift	
++++ b/Loop/Loop/View Models/BolusEntryViewModel.swift	
+@@ -773,6 +773,50 @@ final class BolusEntryViewModel: ObservableObject {
+ 
+         chartDateInterval = DateInterval(start: chartStartDate, duration: .hours(totalHours))
+     }
++
++    // Gets the current insulin-to-carb ratio based on the carb ratio schedule
++    func currentInsulinToCarbRatio(carbs: HKQuantity) -> Double? {
++        // Ensure the carb ratio schedule is available
++        guard let carbRatioSchedule = delegate?.settings.carbRatioSchedule else {
++            return nil
++        }
++
++        // Get the current date
++        let date = Date()
++
++        // Retrieve the carb ratio at the current date
++        let carbRatio = carbRatioSchedule.quantity(at: date)
++        let currentICRatio = carbRatio.doubleValue(for: .gram())
++
++        return currentICRatio
++    }
++
++    // Calculates the bolus amount based on the given carbs, the insulin-to-carb ratio, and the active insulin
++    func calculateBasicBolus(carbs: HKQuantity) -> Double? {
++        // Ensure a non-zero insulin-to-carb ratio is available
++        guard let currentICRatio = currentInsulinToCarbRatio(carbs: carbs), currentICRatio != 0 else {
++            return nil
++        }
++
++        // Calculate insulin on board, ensuring it's not negative
++        let insulinOnBoard = max(activeInsulin?.doubleValue(for: .internationalUnit()) ?? 0, 0)
++
++        // Calculate the unadjusted bolus
++        let unadjustedBolus = carbs.doubleValue(for: HKUnit.gram()) / currentICRatio
++
++        // Adjust the bolus based on insulin on board, ensuring it doesn't go below zero
++        let bolusWithIOB = max(unadjustedBolus - insulinOnBoard, 0)
++
++        // Round the bolus volume according to the pump's specifications
++        let roundedBolus = roundedBolusVolume(units: bolusWithIOB)
++
++        return roundedBolus
++    }
++
++    // Rounds the bolus volume according to the pump's specifications
++    func roundedBolusVolume(units: Double) -> Double {
++        return delegate?.roundBolusVolume(units: units) ?? units
++    }
+ }
+ 
+ extension BolusEntryViewModel.Alert: Identifiable {
+diff --git a/Loop/Loop/Views/BolusEntryView.swift b/Loop/Loop/Views/BolusEntryView.swift
+index b59b3fbd..24212bc3 100644
+--- a/Loop/Loop/Views/BolusEntryView.swift
++++ b/Loop/Loop/Views/BolusEntryView.swift
+@@ -194,6 +194,7 @@ struct BolusEntryView: View {
+ 
+             if viewModel.isManualGlucoseEntryEnabled || viewModel.potentialCarbEntry != nil {
+                 recommendedBolusRow
++                basicICBolusCalcRow
+             }
+ 
+             bolusEntryRow
+@@ -245,6 +246,9 @@ struct BolusEntryView: View {
+             }
+         }
+         .accessibilityElement(children: .combine)
++        .onTapGesture {
++            enteredBolusStringBinding.wrappedValue = recommendedBolusString
++        }
+     }
+ 
+     private var recommendedBolusString: String {
+@@ -457,6 +461,42 @@ struct BolusEntryView: View {
+             )
+         }
+     }
++
++    // SwiftUI view component displaying the basic I:C bolus calculation
++    private var basicICBolusCalcRow: some View {
++        HStack {
++            Text("Basic I:C Bolus Calc", comment: "Label for basic I:C bolus calc row on bolus screen")
++            Spacer()
++            HStack(alignment: .firstTextBaseline) {
++                Text(basicBolusCalcString)
++                    .font(.title)
++                    .foregroundColor(Color(.red))
++                bolusUnitsLabel
++            }
++        }
++        .accessibilityElement(children: .combine)
++        // Handle tap gestures to update enteredBolusStringBinding with the calculated bolus value
++        .onTapGesture {
++            enteredBolusStringBinding.wrappedValue = basicBolusCalcString
++        }
++    }
++
++    // Computed property returning the string representation of the basic bolus calculation
++    private var basicBolusCalcString: String {
++        // Ensure a potential carb entry is available
++        guard let potentialCarbEntry = viewModel.potentialCarbEntry else { return "–" }
++
++        // Get the carbs quantity
++        let carbsQuantity = potentialCarbEntry.quantity
++
++        // Calculate the basic bolus using the view model's function
++        guard let basicBolus = viewModel.calculateBasicBolus(carbs: carbsQuantity) else {
++            return "–"
++        }
++
++        // Return the formatted basic bolus string
++        return Self.doseAmountFormatter.string(from: basicBolus) ?? "–"
++    }
+ }
+ 
+ struct LabeledQuantity: View {
