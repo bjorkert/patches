@@ -39,24 +39,25 @@ Install this patch to see a small number on your Loop app badge, indicating the 
 When pairing a new pod, the abundance of unnecessary clicks and confirmations in Loop 3.x can be quite cumbersome. As an experienced looper, you likely breeze through them as quickly as possible without actually reading them. This patch streamlines the process by eliminating the unnecessary dialogs and retaining only the essential ones—"Pair Pod" and "Insert Cannula"—where actual actions take place. As a result, the patch effectively reduces clicks and enhances the user experience.
 &nbsp;
 ## Basic I:C Bolus Calculation
-This patch introduces a new feature in meal bolus screen to calculate a basic insulin-to-carb (I:C) bolus without considering the glucose prediction. The purpose of this addition is to provide users with an alternative bolus calculation method when Loop's automatic bolus recommendation is not suitable for their specific situation.
+This patch introduces a new feature in the meal bolus screen to calculate a basic insulin-to-carb (I:C) bolus without considering the glucose prediction. The purpose of this addition is to provide users with an alternative bolus calculation method when Loop's automatic bolus recommendation is not suitable for their specific situation.
 
-Users might encounter scenarios where their blood glucose is predicted to drop below the desired range, causing Loop to recommend against bolusing. Loop will then wait with the insulin until blood glucose rises, usually resulting in a spike.
+Users might encounter scenarios where their blood glucose is predicted to drop below the desired range, causing Loop to recommend against bolusing. Loop will then wait with the insulin until blood glucose rises, possibly resulting in a spike.
 
-To solve this issue, a new row has been added in the bolus entry screen, labeled "Basic I:C Bolus Calc." This row displays the calculated bolus based on the user's insulin-to-carb ratio and the entered carbohydrates without factoring in current bg value, glucose predictions, override, or negative insulin on board (IOB). The calculation will consider positive IOB to avoid over-bolusing.
+To address this issue, a new row has been added in the bolus entry screen, labeled "Basic I:C Bolus Calc." This row displays the calculated bolus based on the user's insulin-to-carb ratio and the entered carbohydrates and existing carbs on board without factoring in current bg value, glucose predictions, override. The calculation will consider positive insulin on board (IOB) and ignore negative IOB to avoid over-bolusing.
 
 To use this feature, users can simply tap the "Basic I:C Bolus Calc" row, and the app will update the bolus entry field with the calculated value. The user can then proceed to deliver the bolus manually.
 
 Calculation Example:
-Assume a user has an insulin-to-carb ratio of 1:10, meaning 1 unit of insulin covers 10 grams of carbohydrates. They enter a meal with 50 grams of carbohydrates, and their current positive IOB is 1 unit.
+Assume a user has an insulin-to-carb ratio of 1:10, meaning 1 unit of insulin covers 10 grams of carbohydrates. They enter a meal with 50 grams of carbohydrates, their current positive IOB is 1 unit, and they have 20 grams of carbs on board.
 
 Using the Basic I:C Bolus Calc, the calculation would be as follows:
 
-Unadjusted bolus: 50 grams of carbs / 10 (I:C ratio) = 5 units of insulin
-Bolus with IOB: 5 units (unadjusted) - 1 unit (positive IOB) = 4 units
-In this case, the user is presented with the option to deliver a 4-unit bolus manually.
+Total carbs: 50 grams of entered carbs + 20 grams of carbs on board = 70 grams
+Unadjusted bolus: 70 grams of total carbs / 10 (I:C ratio) = 7 units of insulin
+Bolus with IOB: 7 units (unadjusted) - 1 unit (positive IOB) = 6 units
+In this case, the user is presented with the option to deliver a 6-unit bolus manually.
 
-Loop's recommendation remains the default option, and there are scenarios where Loop would recommend more insulin than the basic calculation, such as when the blood glucose value is too high and Loop includes a correction in the dosage. 
+Loop's recommendation remains the default option, and there are scenarios where Loop would recommend more insulin than the basic calculation, such as when the blood glucose value is too high and Loop includes a correction in the dosage.
 
 With this patch, the feature to click on Loop's recommended value to copy it to the entered bolus value is restored (it was removed in Loop 3).
 &nbsp;
