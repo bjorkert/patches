@@ -1,7 +1,8 @@
-diff --git a/Loop/View Models/BolusEntryViewModel.swift b/Loop/View Models/BolusEntryViewModel.swift
+Submodule Loop contains modified content
+diff --git a/Loop/Loop/View Models/BolusEntryViewModel.swift b/Loop/Loop/View Models/BolusEntryViewModel.swift
 index bd2ecd47..e3d6ba6a 100644
---- a/Loop/View Models/BolusEntryViewModel.swift	
-+++ b/Loop/View Models/BolusEntryViewModel.swift	
+--- a/Loop/Loop/View Models/BolusEntryViewModel.swift	
++++ b/Loop/Loop/View Models/BolusEntryViewModel.swift	
 @@ -773,6 +773,56 @@ final class BolusEntryViewModel: ObservableObject {
  
          chartDateInterval = DateInterval(start: chartStartDate, duration: .hours(totalHours))
@@ -59,10 +60,10 @@ index bd2ecd47..e3d6ba6a 100644
  }
  
  extension BolusEntryViewModel.Alert: Identifiable {
-diff --git a/Loop/Views/BolusEntryView.swift b/Loop/Views/BolusEntryView.swift
+diff --git a/Loop/Loop/Views/BolusEntryView.swift b/Loop/Loop/Views/BolusEntryView.swift
 index b59b3fbd..24212bc3 100644
---- a/Loop/Views/BolusEntryView.swift
-+++ b/Loop/Views/BolusEntryView.swift
+--- a/Loop/Loop/Views/BolusEntryView.swift
++++ b/Loop/Loop/Views/BolusEntryView.swift
 @@ -194,6 +194,7 @@ struct BolusEntryView: View {
  
              if viewModel.isManualGlucoseEntryEnabled || viewModel.potentialCarbEntry != nil {
