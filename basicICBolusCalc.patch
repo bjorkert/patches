@@ -208,10 +208,10 @@ index 31b6ebff..eb80097c 100644
  				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
  				INFOPLIST_FILE = "Loop Intent Extension/Info.plist";
 diff --git a/Loop/Loop/View Models/BolusEntryViewModel.swift b/Loop/Loop/View Models/BolusEntryViewModel.swift
-index bd2ecd47..9ea29128 100644
+index bd2ecd47..e3d6ba6a 100644
 --- a/Loop/Loop/View Models/BolusEntryViewModel.swift	
 +++ b/Loop/Loop/View Models/BolusEntryViewModel.swift	
-@@ -773,6 +773,50 @@ final class BolusEntryViewModel: ObservableObject {
+@@ -773,6 +773,56 @@ final class BolusEntryViewModel: ObservableObject {
  
          chartDateInterval = DateInterval(start: chartStartDate, duration: .hours(totalHours))
      }
@@ -233,23 +233,29 @@ index bd2ecd47..9ea29128 100644
 +        return currentICRatio
 +    }
 +
-+    // Calculates the bolus amount based on the given carbs, the insulin-to-carb ratio, and the active insulin
++    // Calculates the bolus amount based on the given carbs, carbs on board, the insulin-to-carb ratio, and the active insulin
 +    func calculateBasicBolus(carbs: HKQuantity) -> Double? {
-+        // Ensure a non-zero insulin-to-carb ratio is available
++        // Get the current insulin-to-carb ratio, return nil if it cannot be obtained
 +        guard let currentICRatio = currentInsulinToCarbRatio(carbs: carbs), currentICRatio != 0 else {
 +            return nil
 +        }
 +
-+        // Calculate insulin on board, ensuring it's not negative
++        // Get the insulin on board, using a minimum value of 0
 +        let insulinOnBoard = max(activeInsulin?.doubleValue(for: .internationalUnit()) ?? 0, 0)
 +
-+        // Calculate the unadjusted bolus
-+        let unadjustedBolus = carbs.doubleValue(for: HKUnit.gram()) / currentICRatio
++        // Get the carbs on board, using a default value of 0 if it cannot be obtained
++        let carbsOnBoard = activeCarbs?.doubleValue(for: .gram()) ?? 0
 +
-+        // Adjust the bolus based on insulin on board, ensuring it doesn't go below zero
++        // Calculate the total carbs by adding the entered carbs and carbs on board
++        let totalCarbs = carbs.doubleValue(for: HKUnit.gram()) + carbsOnBoard
++
++        // Calculate the unadjusted bolus by dividing the total carbs by the current insulin-to-carb ratio
++        let unadjustedBolus = totalCarbs / currentICRatio
++
++        // Calculate the bolus with insulin on board considered, ensuring it's not less than 0
 +        let bolusWithIOB = max(unadjustedBolus - insulinOnBoard, 0)
 +
-+        // Round the bolus volume according to the pump's specifications
++        // Round the bolus volume according to the pump's settings
 +        let roundedBolus = roundedBolusVolume(units: bolusWithIOB)
 +
 +        return roundedBolus
