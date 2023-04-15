@@ -45,6 +45,8 @@ Users might encounter scenarios where their blood glucose is predicted to drop b
 
 To address this issue, a new row has been added in the bolus entry screen, labeled "Basic I:C Bolus Calc." This row displays the calculated bolus based on the user's insulin-to-carb ratio, the entered carbohydrates and existing carbs on board without factoring in current bg value, glucose predictions or override. The calculation will consider positive insulin on board (IOB) and ignore negative IOB to avoid over-bolusing.
 
+**Warning: This feature is designed as a basic calculation tool and does not consider all factors that may affect blood sugar levels. Giving all insulin for a meal based solely on this calculation may result in overdosing and difficulty recovering from low blood sugar.**
+
 To use this feature, users can simply tap the 'Basic I:C Bolus Calc' row, and the app will update the bolus entry field with the calculated value. The suggested bolus value will always be displayed in red, indicating that it is calculated differently from Loop's default recommendation. The user can then proceed to deliver the bolus manually.
 
 Calculation Example:
