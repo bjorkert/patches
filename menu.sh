@@ -142,6 +142,7 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     add_patch "Required carbs" "updateRequiredCarbs" ""
     add_patch "Dash Fast Forward" "fast_forward" ""
     add_patch "Basic I:C Bolus Calculation" "basicICBolusCalc" ""
+    add_patch "2 hours Lolipop" "2hlollipop" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir

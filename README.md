@@ -39,6 +39,7 @@ Install this patch to see a small number on your Loop app badge, indicating the 
 When pairing a new pod, the abundance of unnecessary clicks and confirmations in Loop 3.x can be quite cumbersome. As an experienced looper, you likely breeze through them as quickly as possible without actually reading them. This patch streamlines the process by eliminating the unnecessary dialogs and retaining only the essential ones—"Pair Pod" and "Insert Cannula"—where actual actions take place. As a result, the patch effectively reduces clicks and enhances the user experience.
 &nbsp;
 ## Basic I:C Bolus Calculation
+**Only for early adopters. Please note that this patch is still in the testing phase, and as such may receive frequent updates and changes.**
 This patch introduces a new feature in the meal bolus screen to calculate a basic insulin-to-carb (I:C) bolus without considering the glucose prediction. The purpose of this addition is to provide users with an alternative bolus calculation method when Loop's automatic bolus recommendation is not suitable for their specific situation.
 
 Users might encounter scenarios where their blood glucose is predicted to drop below the desired range, causing Loop to recommend against bolusing. Loop will then wait with the insulin until blood glucose rises, possibly resulting in a spike.
@@ -62,6 +63,9 @@ In this case, the user is presented with the option to deliver a 6-unit bolus ma
 Loop's recommendation remains the default option, and there are scenarios where Loop would recommend more insulin than the basic calculation, such as when the blood glucose value is too high and Loop includes a correction in the dosage.
 
 With this patch, the feature to click on Loop's recommended value to copy it to the entered bolus value is restored (it was removed in Loop 3).
+&nbsp;
+## 2 hours Lolipop
+This patch reverts the carb absorption time for the lollipop (fast) icon in Loop 3 to its original value of 2 hours, which was used in Loop 2. The other default carb absorption times remain unchanged, so the taco (medium) icon remains at 3 hours, and the pizza (slow) icon remains at 5 hours, which is the same as in Loop 3. It's worth noting that Loop 2 had a carb absorption time of 4 hours for the pizza (slow) icon.
 &nbsp;
 &nbsp;
 # Loop Follow patches
