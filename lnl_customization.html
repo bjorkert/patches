@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customize Loop</title>
+    <style>
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customize Loop</h1>
+    <div>
+        <label><input type="checkbox" id="option1"> Increase Future Carbs Limit to 4 hours</label><br>
+        <label><input type="checkbox" id="option2"> Libre Users: Limit Loop to <5 minutes</label><br>
+        <label><input type="checkbox" id="option3"> Modify Carb Warning & Limit: Low Carb to 49 & 99</label><br>
+    </div>
+    <button id="copyButton">Copy to Clipboard</button>
+    <textarea id="output" readonly></textarea>
+
+    <script>
+        const options = [
+            {
+                id: 'option1',
+                text: `
+          # Loop: Increase future carb time limit to 4 hours from 1 hour default
+          curl https://github.com/loopnlearn/Loop/commit/a974b6749ef4506ca679a0061c260dabcfbf9ee2.patch | git apply --directory=Loop
+`
+            },
+            {
+                id: 'option2',
+                text: `
+          # Loop: LoopDataManager: Limit loop cycles to no more frequent than once every 4.8 minutes
+          curl https://github.com/loopnlearn/Loop/commit/414588c5e7dc36f692c8bbcf2d97adde1861072a.patch | git apply --directory=Loop
+`
+            },
+            {
+                id: 'option3',
+                text: `
+          # Loop: LoopConstants: Limit carb entry to 99 and shows warning if over 49 g
+          curl https://github.com/loopnlearn/Loop/commit/d9939c65a6b2fc088ee5acdf0d9dc247ad30986c.patch | git apply --directory=Loop
+`
+            }
+        ];
+
+        const initialText = `
+      # Customize Loop: Download and apply patches
+      - name: Customize Loop
+        run: |`;
+
+        const output = document.getElementById('output');
+        const copyButton = document.getElementById('copyButton');
+
+        function updateOutput() {
+            let text = initialText;
+            options.forEach(option => {
+                const checkbox = document.getElementById(option.id);
+                if (checkbox.checked) {
+                    text += option.text;
+                }
+            });
+            output.value = text;
+        }
+
+        options.forEach(option => {
+            const checkbox = document.getElementById(option.id);
+            checkbox.addEventListener('change', updateOutput);
+        });
+
+        copyButton.addEventListener('click', () => {
+            output.select();
+            document.execCommand('copy');
+            alert('Text copied to clipboard');
+        });
+
+        updateOutput();
+    </script>
+</body>
+</html>
