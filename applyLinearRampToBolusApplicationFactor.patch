@@ -1,0 +1,351 @@
+Submodule Loop contains modified content
+diff --git a/Loop/Loop/Managers/SettingsManager.swift b/Loop/Loop/Managers/SettingsManager.swift
+index e52cada0..ded3e7fc 100644
+--- a/Loop/Loop/Managers/SettingsManager.swift
++++ b/Loop/Loop/Managers/SettingsManager.swift
+@@ -109,6 +109,7 @@ class SettingsManager {
+                 maximumBolus: latestSettings.maximumBolus,
+                 suspendThreshold: latestSettings.suspendThreshold,
+                 automaticDosingStrategy: latestSettings.automaticDosingStrategy,
++                applyLinearRampToBolusApplicationFactor: latestSettings.applyLinearRampToBolusApplicationFactor,
+                 defaultRapidActingModel: latestSettings.defaultRapidActingModel?.presetForRapidActingInsulin)
+         }
+     }
+@@ -140,7 +141,8 @@ class SettingsManager {
+                               cgmDevice: deviceStatusProvider?.cgmManagerStatus?.device,
+                               pumpDevice: deviceStatusProvider?.pumpManagerStatus?.device,
+                               bloodGlucoseUnit: displayGlucoseUnitObservable?.displayGlucoseUnit,
+-                              automaticDosingStrategy: newLoopSettings.automaticDosingStrategy)
++                              automaticDosingStrategy: newLoopSettings.automaticDosingStrategy,
++                              applyLinearRampToBolusApplicationFactor: newLoopSettings.applyLinearRampToBolusApplicationFactor)
+     }
+ 
+     func storeSettings(newLoopSettings: LoopSettings? = nil, notificationSettings: NotificationSettings? = nil) {
+diff --git a/Loop/Loop/View Controllers/StatusTableViewController.swift b/Loop/Loop/View Controllers/StatusTableViewController.swift
+index 904f64ca..f63ead01 100644
+--- a/Loop/Loop/View Controllers/StatusTableViewController.swift	
++++ b/Loop/Loop/View Controllers/StatusTableViewController.swift	
+@@ -1464,6 +1464,7 @@ final class StatusTableViewController: LoopChartsTableViewController {
+                                           isClosedLoopAllowed: closedLoopStatus.$isClosedLoopAllowed,
+                                           supportInfoProvider: deviceManager,
+                                           automaticDosingStrategy: deviceManager.loopManager.settings.automaticDosingStrategy,
++                                          applyLinearRampToBolusApplicationFactor: deviceManager.loopManager.settings.applyLinearRampToBolusApplicationFactor,
+                                           availableSupports: supportManager.availableSupports,
+                                           isOnboardingComplete: onboardingManager.isComplete,
+                                           therapySettingsViewModelDelegate: deviceManager,
+@@ -2066,6 +2067,12 @@ extension StatusTableViewController: SettingsViewModelDelegate {
+         }
+     }
+ 
++    func applyLinearRampToBolusApplicationFactorChanged(_ value: Bool) {
++        self.deviceManager.loopManager.mutateSettings { settings in
++            settings.applyLinearRampToBolusApplicationFactor = value
++        }
++    }
++
+     func didTapIssueReport(title: String) {
+         // TODO: this dismiss here is temporary, until we know exactly where
+         // we want this screen to belong in the navigation flow
+diff --git a/Loop/Loop/View Models/SettingsViewModel.swift b/Loop/Loop/View Models/SettingsViewModel.swift
+index 16e58743..c3616289 100644
+--- a/Loop/Loop/View Models/SettingsViewModel.swift	
++++ b/Loop/Loop/View Models/SettingsViewModel.swift	
+@@ -52,6 +52,7 @@ public typealias PumpManagerViewModel = DeviceViewModel<PumpManagerDescriptor>
+ public protocol SettingsViewModelDelegate: AnyObject {
+     func dosingEnabledChanged(_: Bool)
+     func dosingStrategyChanged(_: AutomaticDosingStrategy)
++    func applyLinearRampToBolusApplicationFactorChanged(_: Bool)
+     func didTapIssueReport(title: String)
+     var closedLoopDescriptiveText: String? { get }
+ }
+@@ -94,6 +95,12 @@ public class SettingsViewModel: ObservableObject {
+         }
+     }
+ 
++    @Published var applyLinearRampToBolusApplicationFactor: Bool {
++        didSet {
++            delegate?.applyLinearRampToBolusApplicationFactorChanged(applyLinearRampToBolusApplicationFactor)
++        }
++    }
++
+     var closedLoopPreference: Bool {
+        didSet {
+            delegate?.dosingEnabledChanged(closedLoopPreference)
+@@ -115,6 +122,7 @@ public class SettingsViewModel: ObservableObject {
+                 isClosedLoopAllowed: Published<Bool>.Publisher,
+                 supportInfoProvider: SupportInfoProvider,
+                 automaticDosingStrategy: AutomaticDosingStrategy,
++                applyLinearRampToBolusApplicationFactor: Bool,
+                 availableSupports: [SupportUI],
+                 isOnboardingComplete: Bool,
+                 therapySettingsViewModelDelegate: TherapySettingsViewModelDelegate?,
+@@ -132,6 +140,7 @@ public class SettingsViewModel: ObservableObject {
+         self.closedLoopPreference = initialDosingEnabled
+         self.isClosedLoopAllowed = false
+         self.automaticDosingStrategy = automaticDosingStrategy
++        self.applyLinearRampToBolusApplicationFactor = applyLinearRampToBolusApplicationFactor
+         self.supportInfoProvider = supportInfoProvider
+         self.availableSupports = availableSupports
+         self.isOnboardingComplete = isOnboardingComplete
+@@ -194,6 +203,7 @@ extension SettingsViewModel {
+                                  isClosedLoopAllowed: FakeClosedLoopAllowedPublisher().$mockIsClosedLoopAllowed,
+                                  supportInfoProvider: MockSupportInfoProvider(),
+                                  automaticDosingStrategy: .automaticBolus,
++                                 applyLinearRampToBolusApplicationFactor: false,
+                                  availableSupports: [],
+                                  isOnboardingComplete: false,
+                                  therapySettingsViewModelDelegate: nil,
+diff --git a/Loop/Loop/Views/DosingStrategySelectionView.swift b/Loop/Loop/Views/DosingStrategySelectionView.swift
+index f447b032..c0a3378f 100644
+--- a/Loop/Loop/Views/DosingStrategySelectionView.swift
++++ b/Loop/Loop/Views/DosingStrategySelectionView.swift
+@@ -14,11 +14,13 @@ import LoopKitUI
+ public struct DosingStrategySelectionView: View {
+     
+     @Binding private var automaticDosingStrategy: AutomaticDosingStrategy
+-    
++    @Binding private var applyLinearRampToBolusApplicationFactor: Bool
++
+     @State private var internalDosingStrategy: AutomaticDosingStrategy
+     
+-    public init(automaticDosingStrategy: Binding<AutomaticDosingStrategy>) {
++    public init(automaticDosingStrategy: Binding<AutomaticDosingStrategy>, applyLinearRampToBolusApplicationFactor: Binding<Bool>) {
+         self._automaticDosingStrategy = automaticDosingStrategy
++        self._applyLinearRampToBolusApplicationFactor = applyLinearRampToBolusApplicationFactor
+         self._internalDosingStrategy = State(initialValue: automaticDosingStrategy.wrappedValue)
+     }
+     
+@@ -45,13 +47,34 @@ public struct DosingStrategySelectionView: View {
+                             self.internalDosingStrategy = strategy // Hack to force update. :(
+                         }
+                     }
+-                )
++                ),
++                trailingView: strategy.isAutomaticBolus ? linearRampVolusApplicationFactorSection : nil
+             )
+             .padding(.vertical, 4)
+         }
+     }
+ }
+ 
++extension DosingStrategySelectionView {
++    var linearRampVolusApplicationFactorSection: AnyView {
++        return AnyView(
++            Toggle(isOn: $applyLinearRampToBolusApplicationFactor) {
++                VStack(alignment: .leading) {
++                    Text("Linear Bolus Ramp", comment: "The title text for the Apply Linear Ramp to Bolus Application Factor toggle")
++                        .padding(.vertical, 0.5)
++                    Text("Loop will apply a linear ramp to the bolus application factor, gradually increasing the partial bolus factor as glucose levels rise. ", comment: "Description string for Apply Linear Ramp to Bolus Application Factor toggle")
++                        .font(.footnote)
++                        .foregroundColor(.secondary)
++                        .fixedSize(horizontal: false, vertical: true)
++                        .multilineTextAlignment(.leading)
++                }
++                .fixedSize(horizontal: false, vertical: true)
++            }
++            .disabled(!automaticDosingStrategy.isAutomaticBolus)
++        )
++    }
++}
++
+ extension AutomaticDosingStrategy {
+     var informationalText: String {
+         switch self {
+@@ -61,11 +84,14 @@ extension AutomaticDosingStrategy {
+             return NSLocalizedString("Loop will automatically bolus when insulin needs are above scheduled basal, and will use temporary basal rates when needed to reduce insulin delivery below scheduled basal.", comment: "Description string for automatic bolus dosing strategy")
+         }
+     }
+-
++
++    var isAutomaticBolus: Bool {
++        return self == .automaticBolus
++    }
+ }
+ 
+ struct DosingStrategySelectionView_Previews: PreviewProvider {
+     static var previews: some View {
+-        DosingStrategySelectionView(automaticDosingStrategy: .constant(.automaticBolus))
++        DosingStrategySelectionView(automaticDosingStrategy: .constant(.automaticBolus), applyLinearRampToBolusApplicationFactor: .constant(false))
+     }
+ }
+diff --git a/Loop/Loop/Views/SettingsView.swift b/Loop/Loop/Views/SettingsView.swift
+index 90859273..a6fdaff1 100644
+--- a/Loop/Loop/Views/SettingsView.swift
++++ b/Loop/Loop/Views/SettingsView.swift
+@@ -125,7 +125,7 @@ extension SettingsView {
+     private var dosingStrategySection: some View {
+         Section(header: SectionHeader(label: NSLocalizedString("Dosing Strategy", comment: "The title of the Dosing Strategy section in settings"))) {
+             
+-            NavigationLink(destination: DosingStrategySelectionView(automaticDosingStrategy: $viewModel.automaticDosingStrategy))
++            NavigationLink(destination: DosingStrategySelectionView(automaticDosingStrategy: $viewModel.automaticDosingStrategy, applyLinearRampToBolusApplicationFactor: $viewModel.applyLinearRampToBolusApplicationFactor))
+             {
+                 HStack {
+                     Text(viewModel.automaticDosingStrategy.title)
+diff --git a/Loop/LoopCore/LoopSettings.swift b/Loop/LoopCore/LoopSettings.swift
+index 63418ad4..72bff596 100644
+--- a/Loop/LoopCore/LoopSettings.swift
++++ b/Loop/LoopCore/LoopSettings.swift
+@@ -72,6 +72,8 @@ public struct LoopSettings: Equatable {
+     public var suspendThreshold: GlucoseThreshold? = nil
+     
+     public var automaticDosingStrategy: AutomaticDosingStrategy = .tempBasalOnly
++
++    public var applyLinearRampToBolusApplicationFactor: Bool = false
+ 
+     public var defaultRapidActingModel: ExponentialInsulinModelPreset?
+ 
+@@ -94,6 +96,7 @@ public struct LoopSettings: Equatable {
+         maximumBolus: Double? = nil,
+         suspendThreshold: GlucoseThreshold? = nil,
+         automaticDosingStrategy: AutomaticDosingStrategy = .tempBasalOnly,
++        applyLinearRampToBolusApplicationFactor: Bool = false,
+         defaultRapidActingModel: ExponentialInsulinModelPreset? = nil
+     ) {
+         self.dosingEnabled = dosingEnabled
+@@ -110,6 +113,7 @@ public struct LoopSettings: Equatable {
+         self.maximumBolus = maximumBolus
+         self.suspendThreshold = suspendThreshold
+         self.automaticDosingStrategy = automaticDosingStrategy
++        self.applyLinearRampToBolusApplicationFactor = applyLinearRampToBolusApplicationFactor
+         self.defaultRapidActingModel = defaultRapidActingModel
+     }
+ }
+@@ -277,13 +281,18 @@ extension LoopSettings: RawRepresentable {
+         {
+             self.automaticDosingStrategy = automaticDosingStrategy
+         }
++
++        if let applyLinearRampToBolusApplicationFactor = rawValue["applyLinearRampToBolusApplicationFactor"] as? Bool {
++            self.applyLinearRampToBolusApplicationFactor = applyLinearRampToBolusApplicationFactor
++        }
+     }
+ 
+     public var rawValue: RawValue {
+         var raw: RawValue = [
+             "version": LoopSettings.version,
+             "dosingEnabled": dosingEnabled,
+-            "overridePresets": overridePresets.map { $0.rawValue }
++            "overridePresets": overridePresets.map { $0.rawValue },
++            "applyLinearRampToBolusApplicationFactor": applyLinearRampToBolusApplicationFactor
+         ]
+ 
+         raw["glucoseTargetRangeSchedule"] = glucoseTargetRangeSchedule?.rawValue
+Submodule LoopKit contains modified content
+diff --git a/LoopKit/LoopKit/SettingsStore.swift b/LoopKit/LoopKit/SettingsStore.swift
+index afcb9d8..605b26b 100644
+--- a/LoopKit/LoopKit/SettingsStore.swift
++++ b/LoopKit/LoopKit/SettingsStore.swift
+@@ -273,6 +273,7 @@ public struct StoredSettings: Equatable {
+     // This is the user's display preference glucose unit. TODO: Rename?
+     public let bloodGlucoseUnit: HKUnit?
+     public let automaticDosingStrategy: AutomaticDosingStrategy
++    public let applyLinearRampToBolusApplicationFactor: Bool
+     public let syncIdentifier: UUID
+ 
+     public init(date: Date = Date(),
+@@ -299,6 +300,7 @@ public struct StoredSettings: Equatable {
+                 pumpDevice: HKDevice? = nil,
+                 bloodGlucoseUnit: HKUnit? = nil,
+                 automaticDosingStrategy: AutomaticDosingStrategy = .tempBasalOnly,
++                applyLinearRampToBolusApplicationFactor: Bool = false,
+                 syncIdentifier: UUID = UUID()) {
+         self.date = date
+         self.controllerTimeZone = controllerTimeZone
+@@ -324,6 +326,7 @@ public struct StoredSettings: Equatable {
+         self.pumpDevice = pumpDevice
+         self.bloodGlucoseUnit = bloodGlucoseUnit
+         self.automaticDosingStrategy = automaticDosingStrategy
++        self.applyLinearRampToBolusApplicationFactor = applyLinearRampToBolusApplicationFactor
+         self.syncIdentifier = syncIdentifier
+     }
+ }
+@@ -358,6 +361,7 @@ extension StoredSettings: Codable {
+                   pumpDevice: try container.decodeIfPresent(CodableDevice.self, forKey: .pumpDevice)?.device,
+                   bloodGlucoseUnit: bloodGlucoseUnit,
+                   automaticDosingStrategy: try container.decodeIfPresent(AutomaticDosingStrategy.self, forKey: .automaticDosingStrategy) ?? .tempBasalOnly,
++                  applyLinearRampToBolusApplicationFactor: try container.decodeIfPresent(Bool.self, forKey: .applyLinearRampToBolusApplicationFactor) ?? false,
+                   syncIdentifier: try container.decode(UUID.self, forKey: .syncIdentifier))
+     }
+ 
+@@ -388,6 +392,7 @@ extension StoredSettings: Codable {
+         try container.encodeIfPresent(pumpDevice.map { CodableDevice($0) }, forKey: .pumpDevice)
+         try container.encode(bloodGlucoseUnit.unitString, forKey: .bloodGlucoseUnit)
+         try container.encode(automaticDosingStrategy, forKey: .automaticDosingStrategy)
++        try container.encode(applyLinearRampToBolusApplicationFactor, forKey: .applyLinearRampToBolusApplicationFactor)
+         try container.encode(syncIdentifier, forKey: .syncIdentifier)
+     }
+ 
+@@ -432,6 +437,7 @@ extension StoredSettings: Codable {
+         case pumpDevice
+         case bloodGlucoseUnit
+         case automaticDosingStrategy
++        case applyLinearRampToBolusApplicationFactor
+         case syncIdentifier
+     }
+ }
+diff --git a/LoopKit/LoopKitUI/Views/CheckmarkListItem.swift b/LoopKit/LoopKitUI/Views/CheckmarkListItem.swift
+index 2c8b71f..e570db5 100644
+--- a/LoopKit/LoopKitUI/Views/CheckmarkListItem.swift
++++ b/LoopKit/LoopKitUI/Views/CheckmarkListItem.swift
+@@ -15,13 +15,15 @@ public struct CheckmarkListItem: View {
+     var description: Text
+     @Binding var isSelected: Bool
+     let isEnabled: Bool
++    var trailingView: AnyView? = nil
+ 
+-    public init(title: Text, titleFont: Font = .headline, description: Text, isSelected: Binding<Bool>, isEnabled: Bool = true) {
++    public init(title: Text, titleFont: Font = .headline, description: Text, isSelected: Binding<Bool>, isEnabled: Bool = true, trailingView: AnyView? = nil) {
+         self.title = title
+         self.titleFont = titleFont
+         self.description = description
+         self._isSelected = isSelected
+         self.isEnabled = isEnabled
++        self.trailingView = trailingView
+     }
+ 
+     @ViewBuilder
+@@ -36,23 +38,29 @@ public struct CheckmarkListItem: View {
+     }
+     
+     private var content: some View {
+-        HStack(spacing: 0) {
+-            VStack(alignment: .leading, spacing: 4) {
+-                title
+-                    .font(titleFont)
+-                description
+-                    .font(.footnote)
+-                    .foregroundColor(.secondary)
+-                    .fixedSize(horizontal: false, vertical: true)
+-                    .multilineTextAlignment(.leading)
++        VStack(alignment: .leading) {
++            HStack(spacing: 0) {
++                VStack(alignment: .leading, spacing: 4) {
++                    title
++                        .font(titleFont)
++                    description
++                        .font(.footnote)
++                        .foregroundColor(.secondary)
++                        .fixedSize(horizontal: false, vertical: true)
++                        .multilineTextAlignment(.leading)
++                }
++
++                Spacer(minLength: 12)
++
++                selectionIndicator
++                    .accessibility(label: Text(isSelected ? "Selected" : "Unselected"))
++            }
++            .animation(nil)
++            if let trailingView = trailingView {
++                trailingView
++                    .padding(.top, 4)
+             }
+-
+-            Spacer(minLength: 12)
+-
+-            selectionIndicator
+-                .accessibility(label: Text(isSelected ? "Selected" : "Unselected"))
+         }
+-        .animation(nil)
+     }
+ 
+     @ViewBuilder

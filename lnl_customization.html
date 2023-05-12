@@ -5,9 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customize Loop</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        div {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 0px 0; 
+            padding: 6px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }       
+        button {
+            display: block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
         textarea {
             width: 100%;
-            height: 200px;
+            height: 500px;
+            margin-top: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: none;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -17,6 +56,12 @@
         <label><input type="checkbox" id="option1"> Increase Future Carbs Limit to 4 hours</label><br>
         <label><input type="checkbox" id="option2"> Libre Users: Limit Loop to <5 minutes</label><br>
         <label><input type="checkbox" id="option3"> Modify Carb Warning & Limit: Low Carb to 49 & 99</label><br>
+        <label><input type="checkbox" id="option4"> Modify Carb Warning & Limit: High Carb to 201 & 300</label><br>
+        <label><input type="checkbox" id="option5"> Disable Authentication Requirement</label><br>
+        <label><input type="checkbox" id="option6"> Override Insulin Needs Picker (50% to 200%, steps of 5%)</label><br>
+        <label><input type="checkbox" id="option7"> CAGE: Upload Pod Start to Nightscout</label><br>
+        <label><input type="checkbox" id="option8"> SAGE: Upload G6 Sensor Start to Nightscout</label><br>
+        <label><input type="checkbox" id="option9"> Change Default to Upload G6 Readings</label><br>
     </div>
     <button id="copyButton">Copy to Clipboard</button>
     <textarea id="output" readonly></textarea>
@@ -42,6 +87,48 @@
                 text: `
           # Loop: LoopConstants: Limit carb entry to 99 and shows warning if over 49 g
           curl https://github.com/loopnlearn/Loop/commit/d9939c65a6b2fc088ee5acdf0d9dc247ad30986c.patch | git apply --directory=Loop
+`
+            },
+            {
+                id: 'option4',
+                text: `
+          # Loop: Modify Carb Warning & Limit: High Carb to 201 & 300
+          curl https://github.com/loopnlearn/Loop/commit/a79482ac638736c2b3b8c5057b48e3097323a522.patch | git apply --directory=Loop
+`
+            },
+            {
+                id: 'option5',
+                text: `
+          # LoopKit: Disable Authentication Requirement
+          curl https://github.com/loopnlearn/LoopKit/commit/77ee44534dd16154d910cfb11dea240cf8a23262.patch | git apply --directory=LoopKit
+`
+            },
+            {
+                id: 'option6',
+                text: `
+          # LoopKit: Override Insulin Needs Picker (50% to 200%, steps of 5%)
+          curl https://github.com/loopnlearn/LoopKit/commit/f35654104f70b7dc70f750d129fbb338b9a4cee0.patch | git apply --directory=LoopKit
+`
+            },
+            {
+                id: 'option7',
+                text: `
+          # CAGE: Upload Pod Start to Nightscout
+          curl https://raw.githubusercontent.com/loopnlearn/loopbuildscripts/main/patch/cage.patch | git apply
+`
+            },
+            {
+                id: 'option8',
+                text: `
+          # CGMBLEKit: SAGE: Upload G6 Sensor Start to Nightscout
+          curl https://github.com/loopnlearn/CGMBLEKit/commit/777c7e36de64bdc060973a6628a02add0917520e.patch | git apply --directory=CGMBLEKit
+`
+            },
+            {
+                id: 'option9',
+                text: `
+          # CGMBLEKit: Change Default to Upload G6 Readings
+          curl https://github.com/loopnlearn/CGMBLEKit/commit/b9638cc7cef74b1da74c950c0dbb3525f157e11f.patch | git apply --directory=CGMBLEKit
 `
             }
         ];
