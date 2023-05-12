@@ -1,7 +1,7 @@
 # Loop patches
 These patches are intended for Loop 3.0 or 3.2, with or without loop n learn patches.
 
-## How to apply a patch:
+## How to apply a patch when building with Xcode:
 First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
 
 ### To select apply (or revert) patches, run the following command:
@@ -11,6 +11,13 @@ First, download Loop by using the loop and learn build script described here: ht
 Copy the command using the copy-button (as shown in the picture below), paste (⌘ V) it into your terminal, and press Enter.
  
 ![Loop](img/copy_command.png)
+
+## How to apply a patch when building with github:
+Use this page to select the patches you want:
+https://htmlpreview.github.io/?https://github.com/bjorkert/patches/blob/master/loop_patches.html
+Copy the code using the copy-button
+In github, edit ".github/workflows/build_loop.yml" and paste the code ther.
+Make sure "- name: Customize Loop..." is not already in the file, in that case remove the duplicate.
 
 &nbsp;
 
