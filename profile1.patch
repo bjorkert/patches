@@ -1,0 +1,711 @@
+Submodule Loop contains modified content
+diff --git a/Loop/Loop/View Controllers/StatusTableViewController.swift b/Loop/Loop/View Controllers/StatusTableViewController.swift
+index 904f64ca..dce78967 100644
+--- a/Loop/Loop/View Controllers/StatusTableViewController.swift	
++++ b/Loop/Loop/View Controllers/StatusTableViewController.swift	
+@@ -1467,7 +1467,8 @@ final class StatusTableViewController: LoopChartsTableViewController {
+                                           availableSupports: supportManager.availableSupports,
+                                           isOnboardingComplete: onboardingManager.isComplete,
+                                           therapySettingsViewModelDelegate: deviceManager,
+-                                          delegate: self)
++                                          delegate: self,
++                                          profileViewModelDelegate: nil)
+         let hostingController = DismissibleHostingController(
+             rootView: SettingsView(viewModel: viewModel)
+                 .environmentObject(deviceManager.displayGlucoseUnitObservable)
+diff --git a/Loop/Loop/View Models/SettingsViewModel.swift b/Loop/Loop/View Models/SettingsViewModel.swift
+index 16e58743..3a06ccc2 100644
+--- a/Loop/Loop/View Models/SettingsViewModel.swift	
++++ b/Loop/Loop/View Models/SettingsViewModel.swift	
+@@ -80,6 +80,7 @@ public class SettingsViewModel: ObservableObject {
+     let supportInfoProvider: SupportInfoProvider
+     let isOnboardingComplete: Bool
+     let therapySettingsViewModelDelegate: TherapySettingsViewModelDelegate?
++    let profileViewModelDelegate: ProfileViewModelDelegate?
+ 
+     @Published var isClosedLoopAllowed: Bool
+ 
+@@ -118,7 +119,8 @@ public class SettingsViewModel: ObservableObject {
+                 availableSupports: [SupportUI],
+                 isOnboardingComplete: Bool,
+                 therapySettingsViewModelDelegate: TherapySettingsViewModelDelegate?,
+-                delegate: SettingsViewModelDelegate?
++                delegate: SettingsViewModelDelegate?,
++                profileViewModelDelegate: ProfileViewModelDelegate?
+     ) {
+         self.alertPermissionsChecker = alertPermissionsChecker
+         self.alertMuter = alertMuter
+@@ -137,7 +139,8 @@ public class SettingsViewModel: ObservableObject {
+         self.isOnboardingComplete = isOnboardingComplete
+         self.therapySettingsViewModelDelegate = therapySettingsViewModelDelegate
+         self.delegate = delegate
+-
++        self.profileViewModelDelegate = profileViewModelDelegate
++
+         // This strangeness ensures the composed ViewModels' (ObservableObjects') changes get reported to this ViewModel (ObservableObject)
+         alertPermissionsChecker.objectWillChange.sink { [weak self] in
+             self?.objectWillChange.send()
+@@ -197,6 +200,7 @@ extension SettingsViewModel {
+                                  availableSupports: [],
+                                  isOnboardingComplete: false,
+                                  therapySettingsViewModelDelegate: nil,
+-                                 delegate: nil)
++                                 delegate: nil,
++                                 profileViewModelDelegate: nil)
+     }
+ }
+diff --git a/Loop/Loop/Views/SettingsView.swift b/Loop/Loop/Views/SettingsView.swift
+index 90859273..447a3aaa 100644
+--- a/Loop/Loop/Views/SettingsView.swift
++++ b/Loop/Loop/Views/SettingsView.swift
+@@ -28,6 +28,7 @@ public struct SettingsView: View {
+     @State private var cgmChooserIsPresented: Bool = false
+     @State private var serviceChooserIsPresented: Bool = false
+     @State private var therapySettingsIsPresented: Bool = false
++    @State private var profilesIsPresented: Bool = false
+     @State private var deletePumpDataAlertIsPresented = false
+     @State private var deleteCGMDataAlertIsPresented = false
+ 
+@@ -150,7 +151,11 @@ extension SettingsView {
+             }
+         }
+     }
+-        
++
++    private var isAnySheetPresented: Bool {
++        therapySettingsIsPresented || profilesIsPresented
++    }
++
+     private var configurationSection: some View {
+         Section(header: SectionHeader(label: NSLocalizedString("Configuration", comment: "The title of the Configuration section in settings"))) {
+             LargeButton(action: { self.therapySettingsIsPresented = true },
+@@ -173,7 +178,27 @@ extension SettingsView {
+                         .environment(\.guidanceColors, self.guidanceColors)
+                         .environment(\.insulinTintColor, self.insulinTintColor)
+             }
+-            
++            // Add the Profiles button here
++            LargeButton(action: { self.profilesIsPresented = true },
++                        includeArrow: true,
++                        imageView: AnyView(Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 30, weight: .bold))),
++                        label: NSLocalizedString("Profiles", comment: "Title text for button to Profiles"),
++                        descriptiveText: NSLocalizedString("Switch between profiles for different scenarios", comment: "Descriptive text for Profiles"))
++            .sheet(isPresented: $profilesIsPresented) {
++                ProfileView(viewModel: ProfileViewModel(therapySettings: self.viewModel.therapySettings(),
++                                                        sensitivityOverridesEnabled: FeatureFlags.sensitivityOverridesEnabled,
++                                                        adultChildInsulinModelSelectionEnabled: FeatureFlags.adultChildInsulinModelSelectionEnabled,
++                                                        delegate: self.viewModel.profileViewModelDelegate))
++                .environmentObject(displayGlucoseUnitObservable)
++                .environment(\.dismissAction, self.dismiss)
++                .environment(\.appName, self.appName)
++                .environment(\.chartColorPalette, .primary)
++                .environment(\.carbTintColor, self.carbTintColor)
++                .environment(\.glucoseTintColor, self.glucoseTintColor)
++                .environment(\.guidanceColors, self.guidanceColors)
++                .environment(\.insulinTintColor, self.insulinTintColor)
++            }
++
+             ForEach(configurationMenuItemsForSupportPlugins) { item in
+                 item.view
+             }
+Submodule LoopKit contains modified content
+diff --git a/LoopKit/LoopKit.xcodeproj/project.pbxproj b/LoopKit/LoopKit.xcodeproj/project.pbxproj
+index 6b13fc8..0677d2a 100644
+--- a/LoopKit/LoopKit.xcodeproj/project.pbxproj
++++ b/LoopKit/LoopKit.xcodeproj/project.pbxproj
+@@ -787,6 +787,8 @@
+ 		C1FAEC1D264AD6B400A3250B /* DeviceStatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FAEC1C264AD6B400A3250B /* DeviceStatusBadge.swift */; };
+ 		C1FAEC1F264AE12700A3250B /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47ECF8725DC20810024A54D /* UIImage.swift */; };
+ 		C1FAEC21264AEEA300A3250B /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FAEC20264AEEA300A3250B /* UIImage.swift */; };
++		DDAF746729F422C600719F0A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAF746629F422C600719F0A /* ProfileView.swift */; };
++		DDAF746929F4234000719F0A /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAF746829F4234000719F0A /* ProfileViewModel.swift */; };
+ 		E9077D2724ACD59F0066A88D /* InformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9077D2624ACD59F0066A88D /* InformationView.swift */; };
+ 		E9077D2A24ACDE2C0066A88D /* CorrectionRangeInformationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9077D2924ACDE2C0066A88D /* CorrectionRangeInformationView.swift */; };
+ 		E9086B2924B39EDC0062F5C8 /* ChartsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9086B2824B39EDC0062F5C8 /* ChartsTableViewController.swift */; };
+@@ -1763,6 +1765,8 @@
+ 		C1FDCC0A29C786F90056E652 /* sk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sk; path = sk.lproj/Localizable.strings; sourceTree = "<group>"; };
+ 		C1FDCC0B29C786F90056E652 /* sk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sk; path = sk.lproj/Localizable.strings; sourceTree = "<group>"; };
+ 		C1FF3D4E29C786A900BDC1EC /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he; path = he.lproj/Localizable.strings; sourceTree = "<group>"; };
++		DDAF746629F422C600719F0A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
++		DDAF746829F4234000719F0A /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+ 		E9077D2624ACD59F0066A88D /* InformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationView.swift; sourceTree = "<group>"; };
+ 		E9077D2924ACDE2C0066A88D /* CorrectionRangeInformationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectionRangeInformationView.swift; sourceTree = "<group>"; };
+ 		E9086B2824B39EDC0062F5C8 /* ChartsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartsTableViewController.swift; sourceTree = "<group>"; };
+@@ -2942,6 +2946,7 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				B455F3A325FF7FF0000ED456 /* CorrectionRangeOverridesEditorViewModel.swift */,
++				DDAF746829F4234000719F0A /* ProfileViewModel.swift */,
+ 				B4B7C1BB2604E3FC007379F6 /* CorrectionRangeScheduleEditorViewModel.swift */,
+ 				B4D4C20C25F95A8700DA809D /* DisplayGlucoseUnitObservable.swift */,
+ 				B455F48025FF9A8B000ED456 /* InsulinSensitivityScheduleEditorViewModel.swift */,
+@@ -3077,6 +3082,7 @@
+ 				E96DCB5924AF74AC007117BC /* SuspendThresholdEditor.swift */,
+ 				1D1FCE2A24BE704A000300A8 /* TherapySetting+Settings.swift */,
+ 				1D1A019D24B678BF0077D86E /* TherapySettingsView.swift */,
++				DDAF746629F422C600719F0A /* ProfileView.swift */,
+ 			);
+ 			path = "Settings Editors";
+ 			sourceTree = "<group>";
+@@ -3880,6 +3886,7 @@
+ 				E93C86B624D08CAD0073089B /* InsulinSensitivityInformationView.swift in Sources */,
+ 				C18733AF29B9492300519CDF /* Collection.swift in Sources */,
+ 				892A5DA22231E137008961AB /* HUDProvider.swift in Sources */,
++				DDAF746929F4234000719F0A /* ProfileViewModel.swift in Sources */,
+ 				898E6E6C224194060019E459 /* UIColor.swift in Sources */,
+ 				43BA717D201EE7090058961E /* GlucoseRangeTableViewCell.swift in Sources */,
+ 				B455F3A425FF7FF0000ED456 /* CorrectionRangeOverridesEditorViewModel.swift in Sources */,
+@@ -3902,6 +3909,7 @@
+ 				1D1065E9282DC54700026A70 /* VideoPlayView.swift in Sources */,
+ 				E99A132E2557548300D3F5B3 /* SegmentedGaugeBar.swift in Sources */,
+ 				B455F31825FBEC5F000ED456 /* SuspendThresholdEditorViewModel.swift in Sources */,
++				DDAF746729F422C600719F0A /* ProfileView.swift in Sources */,
+ 				892A5DB32231E191008961AB /* LevelHUDView.swift in Sources */,
+ 				B41A60B223D1DBC700636320 /* UIFont.swift in Sources */,
+ 				B41A60AF23D1DB5B00636320 /* TableViewTitleLabel.swift in Sources */,
+diff --git a/LoopKit/LoopKitUI/ViewModels/ProfileViewModel.swift b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel.swift
+new file mode 100644
+index 0000000..e2f90e2
+--- /dev/null
++++ b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel.swift
+@@ -0,0 +1,284 @@
++//
++//  ProfileViewModel.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-04-22.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import Combine
++import LoopKit
++import HealthKit
++import SwiftUI
++
++/*
++ public class ProfileViewModel: ObservableObject {
++ @Published var profiles: [Profile] = []
++
++ private let profileDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("profiles")
++
++ public init() {
++ createProfileDirectoryIfNeeded()
++ }
++
++ private func createProfileDirectoryIfNeeded() {
++ do {
++ try FileManager.default.createDirectory(at: profileDirectory, withIntermediateDirectories: true, attributes: nil)
++ } catch {
++ print("Error creating profile directory: \(error)")
++ }
++ }
++
++ public func loadProfiles() {
++ do {
++ let urls = try FileManager.default.contentsOfDirectory(at: profileDirectory, includingPropertiesForKeys: nil, options: [])
++ profiles = urls.compactMap { url -> Profile? in
++ guard let data = try? Data(contentsOf: url),
++ let profile = try? JSONDecoder().decode(Profile.self, from: data) else {
++ return nil
++ }
++ return profile
++ }
++ } catch {
++ print("Error loading profiles: \(error)")
++ }
++ }
++
++ public func saveProfile(withName name: String) {
++ let profile = Profile(id: UUID(), name: name)
++ let url = profileDirectory.appendingPathComponent("\(profile.id.uuidString).json")
++ do {
++ let data = try JSONEncoder().encode(profile)
++ try data.write(to: url)
++ loadProfiles()
++ } catch {
++ print("Error saving profile: \(error)")
++ }
++ }
++
++ public func loadProfile(withId id: UUID) {
++ if let profile = profiles.first(where: { $0.id == id }) {
++ // Perform loading settings from the profile
++ print("Loading profile settings for: \(profile.name)")
++ } else {
++ print("Profile not found")
++ }
++ }
++
++ public func removeProfile(withId id: UUID) {
++ if let profile = profiles.first(where: { $0.id == id }) {
++ let url = profileDirectory.appendingPathComponent("\(profile.id.uuidString).json")
++ do {
++ try FileManager.default.removeItem(at: url)
++ loadProfiles()
++ } catch {
++ print("Error deleting profile: \(error)")
++ }
++ } else {
++ print("Profile not found")
++ }
++ }
++
++ */
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++public protocol ProfileViewModelDelegate: AnyObject {
++    func syncBasalRateSchedule(items: [RepeatingScheduleValue<Double>], completion: @escaping (Result<BasalRateSchedule, Error>) -> Void)
++    func syncDeliveryLimits(deliveryLimits: DeliveryLimits, completion: @escaping (Result<DeliveryLimits, Error>) -> Void)
++    func saveCompletion(therapySettings: TherapySettings)
++    func pumpSupportedIncrements() -> PumpSupportedIncrements?
++}
++
++public class ProfileViewModel: ObservableObject {
++
++    @Published public var therapySettings: TherapySettings
++    private let initialTherapySettings: TherapySettings
++    let sensitivityOverridesEnabled: Bool
++    let adultChildInsulinModelSelectionEnabled: Bool
++    public var prescription: Prescription?
++
++    private weak var delegate: ProfileViewModelDelegate?
++
++    public init(therapySettings: TherapySettings,
++                pumpSupportedIncrements: (() -> PumpSupportedIncrements?)? = nil,
++                sensitivityOverridesEnabled: Bool = false,
++                adultChildInsulinModelSelectionEnabled: Bool = false,
++                prescription: Prescription? = nil,
++                delegate: ProfileViewModelDelegate? = nil) {
++        self.therapySettings = therapySettings
++        self.initialTherapySettings = therapySettings
++        self.sensitivityOverridesEnabled = sensitivityOverridesEnabled
++        self.adultChildInsulinModelSelectionEnabled = adultChildInsulinModelSelectionEnabled
++        self.prescription = prescription
++        self.delegate = delegate
++    }
++
++    var deliveryLimits: DeliveryLimits {
++        return DeliveryLimits(maximumBasalRate: therapySettings.maximumBasalRatePerHour.map { HKQuantity(unit: .internationalUnitsPerHour, doubleValue: $0) },
++                              maximumBolus: therapySettings.maximumBolus.map { HKQuantity(unit: .internationalUnit(), doubleValue: $0) } )
++    }
++
++    var suspendThreshold: GlucoseThreshold? {
++        return therapySettings.suspendThreshold
++    }
++
++    var glucoseTargetRangeSchedule: GlucoseRangeSchedule? {
++        return therapySettings.glucoseTargetRangeSchedule
++    }
++
++    func glucoseTargetRangeSchedule(for glucoseUnit: HKUnit) -> GlucoseRangeSchedule? {
++        return glucoseTargetRangeSchedule?.schedule(for: glucoseUnit)
++    }
++
++    var correctionRangeOverrides: CorrectionRangeOverrides {
++        return CorrectionRangeOverrides(preMeal: therapySettings.correctionRangeOverrides?.preMeal,
++                                        workout: therapySettings.correctionRangeOverrides?.workout)
++    }
++
++    var correctionRangeScheduleRange: ClosedRange<HKQuantity> {
++        precondition(therapySettings.glucoseTargetRangeSchedule != nil)
++        return therapySettings.glucoseTargetRangeSchedule!.scheduleRange()
++    }
++
++    var insulinSensitivitySchedule: InsulinSensitivitySchedule? {
++        return therapySettings.insulinSensitivitySchedule
++    }
++
++    func insulinSensitivitySchedule(for glucoseUnit: HKUnit) -> InsulinSensitivitySchedule? {
++        return insulinSensitivitySchedule?.schedule(for: glucoseUnit)
++    }
++
++    /// Reset to initial
++    public func reset() {
++        therapySettings = initialTherapySettings
++    }
++}
++
++// MARK: Passing along to the delegate
++extension ProfileViewModel {
++
++    public var maximumBasalScheduleEntryCount: Int? {
++        pumpSupportedIncrements()?.maximumBasalScheduleEntryCount
++    }
++
++    public func pumpSupportedIncrements() -> PumpSupportedIncrements? {
++        return delegate?.pumpSupportedIncrements()
++    }
++
++    public func syncBasalRateSchedule(items: [RepeatingScheduleValue<Double>], completion: @escaping (Result<BasalRateSchedule, Error>) -> Void) {
++        delegate?.syncBasalRateSchedule(items: items, completion: completion)
++    }
++
++    public func syncDeliveryLimits(deliveryLimits: DeliveryLimits, completion: @escaping (Result<DeliveryLimits, Error>) -> Void) {
++        delegate?.syncDeliveryLimits(deliveryLimits: deliveryLimits, completion: completion)
++    }
++}
++
++// MARK: Saving
++extension ProfileViewModel {
++
++    public func saveCorrectionRange(range: GlucoseRangeSchedule) {
++        therapySettings.glucoseTargetRangeSchedule = range
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveCorrectionRangeOverride(preset: CorrectionRangeOverrides.Preset,
++                                            correctionRangeOverrides: CorrectionRangeOverrides) {
++        therapySettings.correctionRangeOverrides = correctionRangeOverrides
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveSuspendThreshold(quantity: HKQuantity, withDisplayGlucoseUnit displayGlucoseUnit: HKUnit) {
++        therapySettings.suspendThreshold = GlucoseThreshold(unit: displayGlucoseUnit, value: quantity.doubleValue(for: displayGlucoseUnit))
++
++        // TODO: Eventually target editors should support conflicting initial values
++        // But for now, ensure target ranges do not conflict with suspend threshold.
++        if let targetSchedule = therapySettings.glucoseTargetRangeSchedule {
++            let threshold = quantity.doubleValue(for: targetSchedule.unit)
++            let newItems = targetSchedule.items.map { item in
++                return RepeatingScheduleValue<DoubleRange>.init(
++                    startTime: item.startTime,
++                    value: DoubleRange(
++                        minValue: max(threshold, item.value.minValue),
++                        maxValue: max(threshold, item.value.maxValue)))
++            }
++            therapySettings.glucoseTargetRangeSchedule = GlucoseRangeSchedule(unit: targetSchedule.unit, dailyItems: newItems)
++        }
++
++        if let overrides = therapySettings.correctionRangeOverrides {
++            let adjusted = [overrides.preMeal, overrides.workout].map { item -> ClosedRange<HKQuantity>? in
++                guard let item = item else {
++                    return nil
++                }
++                return ClosedRange<HKQuantity>.init(
++                    uncheckedBounds: (
++                        lower: max(quantity, item.lowerBound),
++                        upper:  max(quantity, item.upperBound)))
++            }
++            therapySettings.correctionRangeOverrides = CorrectionRangeOverrides(
++                preMeal: adjusted[0],
++                workout: adjusted[1])
++        }
++
++        if let presets = therapySettings.overridePresets {
++            therapySettings.overridePresets = presets.map { preset in
++                if let targetRange = preset.settings.targetRange {
++                    var newPreset = preset
++                    newPreset.settings = TemporaryScheduleOverrideSettings(
++                        targetRange: ClosedRange<HKQuantity>.init(
++                            uncheckedBounds: (
++                                lower: max(quantity, targetRange.lowerBound),
++                                upper:  max(quantity, targetRange.upperBound))),
++                        insulinNeedsScaleFactor: preset.settings.insulinNeedsScaleFactor)
++                    return newPreset
++                } else {
++                    return preset
++                }
++            }
++        }
++
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveBasalRates(basalRates: BasalRateSchedule) {
++        therapySettings.basalRateSchedule = basalRates
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveDeliveryLimits(limits: DeliveryLimits) {
++        therapySettings.maximumBasalRatePerHour = limits.maximumBasalRate?.doubleValue(for: .internationalUnitsPerHour)
++        therapySettings.maximumBolus = limits.maximumBolus?.doubleValue(for: .internationalUnit())
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveInsulinModel(insulinModelPreset: ExponentialInsulinModelPreset) {
++        therapySettings.defaultRapidActingModel = insulinModelPreset
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveCarbRatioSchedule(carbRatioSchedule: CarbRatioSchedule) {
++        therapySettings.carbRatioSchedule = carbRatioSchedule
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveInsulinSensitivitySchedule(insulinSensitivitySchedule: InsulinSensitivitySchedule) {
++        therapySettings.insulinSensitivitySchedule = insulinSensitivitySchedule
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++}
+diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift
+new file mode 100644
+index 0000000..c4473ee
+--- /dev/null
++++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift	
+@@ -0,0 +1,250 @@
++//
++//  ProfileView.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-04-22.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import AVFoundation
++import HealthKit
++import LoopKit
++import SwiftUI
++
++import SwiftUI
++
++public struct ProfileView: View {
++    @ObservedObject public var viewModel: ProfileViewModel
++    @Environment(\.dismissAction) var dismissAction
++    @State private var newProfileName: String = ""
++
++    public init(viewModel: ProfileViewModel) {
++        self.viewModel = viewModel
++    }
++
++    private var dismissButton: some View {
++        Button(action: dismissAction) {
++            Text(LocalizedString("Done", comment: "Text for dismiss button"))
++                .bold()
++        }
++    }
++
++    public var body: some View {
++        NavigationView {
++            VStack {
++                TextField(LocalizedString("Profile Name", comment: "Text field for new profile name"), text: $newProfileName)
++                    .textFieldStyle(RoundedBorderTextFieldStyle())
++                    .padding()
++
++                Button(action: {
++                    viewModel.saveProfile(withName: newProfileName)
++                }) {
++                    Text(LocalizedString("Save Profile", comment: "Text for save profile button"))
++                        .bold()
++                }
++
++                List {
++                    ForEach(viewModel.profiles, id: \.id) { profile in
++                        Button(action: {
++                            viewModel.loadProfile(withId: profile.id)
++                        }) {
++                            Text(profile.name)
++                        }
++
++                        Spacer()
++
++                        Button(action: {
++                            viewModel.removeProfile(withId: profile.id)
++                        }) {
++                            Text(LocalizedString("Delete", comment: "Text for delete button"))
++                                .foregroundColor(.red)
++                        }
++                    }
++                }
++            }
++            .navigationTitle(LocalizedString("Profiles", comment: "Profiles screen title"))
++            .navigationBarItems(trailing: dismissButton)
++            .onAppear(perform: viewModel.loadProfiles)
++        }
++    }
++}
++
++struct ProfileView_Previews: PreviewProvider {
++    static let preview_glucoseScheduleItems = [
++        RepeatingScheduleValue(startTime: 0, value: DoubleRange(80...90)),
++        RepeatingScheduleValue(startTime: 1800, value: DoubleRange(90...100)),
++        RepeatingScheduleValue(startTime: 3600, value: DoubleRange(100...110))
++    ]
++
++    static let preview_therapySettings = TherapySettings(
++        glucoseTargetRangeSchedule: GlucoseRangeSchedule(unit: .milligramsPerDeciliter, dailyItems: preview_glucoseScheduleItems),
++        correctionRangeOverrides: CorrectionRangeOverrides(preMeal: DoubleRange(88...99),
++                                                           workout: DoubleRange(99...111),
++                                                           unit: .milligramsPerDeciliter),
++        maximumBolus: 4,
++        suspendThreshold: GlucoseThreshold.init(unit: .milligramsPerDeciliter, value: 60),
++        insulinSensitivitySchedule: InsulinSensitivitySchedule(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: HKUnit.internationalUnit()), dailyItems: []),
++        carbRatioSchedule: nil,
++        basalRateSchedule: BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: 0, value: 0.2), RepeatingScheduleValue(startTime: 1800, value: 0.75)]))
++
++    static let preview_supportedBasalRates = [0.2, 0.5, 0.75, 1.0]
++    static let preview_supportedBolusVolumes = [1.0, 2.0, 3.0]
++    static let preview_supportedMaximumBolusVolumes = [5.0, 10.0, 15.0]
++
++    static var previews: some View {
++        ProfileView(viewModel: ProfileViewModel(therapySettings: preview_therapySettings))
++    }
++}
++
++/*
++public struct ProfileView: View {
++    @EnvironmentObject private var displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
++    @Environment(\.chartColorPalette) var chartColorPalette
++    @Environment(\.dismissAction) var dismissAction
++    @Environment(\.appName) private var appName
++
++    public struct ActionButton {
++        public init(localizedString: String, action: @escaping () -> Void) {
++            self.localizedString = localizedString
++            self.action = action
++        }
++        let localizedString: String
++        let action: () -> Void
++    }
++
++    private let mode: SettingsPresentationMode
++
++    @ObservedObject var viewModel: ProfileViewModel
++
++    private let actionButton: ActionButton?
++
++    public init(mode: SettingsPresentationMode,
++                viewModel: ProfileViewModel,
++                actionButton: ActionButton? = nil) {
++        self.mode = mode
++        self.viewModel = viewModel
++        self.actionButton = actionButton
++    }
++
++    public var body: some View {
++        NavigationView {
++            ZStack {
++                Color(.systemGroupedBackground)
++                    .edgesIgnoringSafeArea(.all)
++                Text("Hello")
++                    .toolbar {
++                        ToolbarItem(placement: .navigationBarTrailing) {
++                            dismissButton
++                        }
++                    }
++                    .navigationBarTitle(profileTitle, displayMode: .large)
++            }
++        }
++    }
++
++    private var profileTitle: String {
++        return LocalizedString("Profiles", comment: "Profiless screen title")
++    }
++
++    private var dismissButton: some View {
++        Button(action: dismissAction) {
++            Text(LocalizedString("Done", comment: "Text for dismiss button"))
++                .bold()
++        }
++    }
++
++    @ViewBuilder
++    private var cardListTrailer: some View {
++        if mode == .acceptanceFlow {
++            if let actionButton = actionButton {
++                Button(action: actionButton.action) {
++                    Text(actionButton.localizedString)
++                }
++                .buttonStyle(ActionButtonStyle(.primary))
++                .padding()
++            }
++        }
++    }
++}
++
++// MARK: Navigation
++
++extension ProfileView {
++
++    func screen(for setting: TherapySetting) -> (_ dismiss: @escaping () -> Void) -> AnyView {
++        return { _ in AnyView(Text("\(setting.title)")) }
++    }
++}
++
++// MARK: Utilities
++extension ProfileView {
++
++    private var glucoseUnit: HKUnit {
++        displayGlucoseUnitObservable.displayGlucoseUnit
++    }
++
++    private var sensitivityUnit: HKUnit {
++        glucoseUnit.unitDivided(by: .internationalUnit())
++    }
++}
++
++// MARK: Previews
++
++public struct ProfileView_Previews: PreviewProvider {
++
++    static let preview_glucoseScheduleItems = [
++        RepeatingScheduleValue(startTime: 0, value: DoubleRange(80...90)),
++        RepeatingScheduleValue(startTime: 1800, value: DoubleRange(90...100)),
++        RepeatingScheduleValue(startTime: 3600, value: DoubleRange(100...110))
++    ]
++
++    static let preview_therapySettings = TherapySettings(
++        glucoseTargetRangeSchedule: GlucoseRangeSchedule(unit: .milligramsPerDeciliter, dailyItems: preview_glucoseScheduleItems),
++        correctionRangeOverrides: CorrectionRangeOverrides(preMeal: DoubleRange(88...99),
++                                                           workout: DoubleRange(99...111),
++                                                           unit: .milligramsPerDeciliter),
++        maximumBolus: 4,
++        suspendThreshold: GlucoseThreshold.init(unit: .milligramsPerDeciliter, value: 60),
++        insulinSensitivitySchedule: InsulinSensitivitySchedule(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: HKUnit.internationalUnit()), dailyItems: []),
++        carbRatioSchedule: nil,
++        basalRateSchedule: BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: 0, value: 0.2), RepeatingScheduleValue(startTime: 1800, value: 0.75)]))
++
++    static let preview_supportedBasalRates = [0.2, 0.5, 0.75, 1.0]
++    static let preview_supportedBolusVolumes = [1.0, 2.0, 3.0]
++    static let preview_supportedMaximumBolusVolumes = [5.0, 10.0, 15.0]
++
++    static func preview_viewModel() -> ProfileViewModel {
++        ProfileViewModel(therapySettings: preview_therapySettings,
++                                 pumpSupportedIncrements: {
++            PumpSupportedIncrements(basalRates: preview_supportedBasalRates,
++                                    bolusVolumes: preview_supportedBolusVolumes,
++                                    maximumBolusVolumes: preview_supportedMaximumBolusVolumes,
++                                    maximumBasalScheduleEntryCount: 24) })
++    }
++
++    public static var previews: some View {
++        Group {
++            ProfileView(mode: .acceptanceFlow, viewModel: preview_viewModel())
++                .colorScheme(.light)
++                .previewDevice(PreviewDevice(rawValue: "iPhone SE 2"))
++                .previewDisplayName("SE light (onboarding)")
++                .environmentObject(DisplayGlucoseUnitObservable(displayGlucoseUnit: .milligramsPerDeciliter))
++            ProfileView(mode: .settings, viewModel: preview_viewModel())
++                .colorScheme(.light)
++                .previewDevice(PreviewDevice(rawValue: "iPhone SE 2"))
++                .previewDisplayName("SE light (settings)")
++                .environmentObject(DisplayGlucoseUnitObservable(displayGlucoseUnit: .milligramsPerDeciliter))
++            ProfileView(mode: .settings, viewModel: preview_viewModel())
++                .colorScheme(.dark)
++                .previewDevice(PreviewDevice(rawValue: "iPhone XS Max"))
++                .previewDisplayName("XS Max dark (settings)")
++            ProfileView(mode: .settings, viewModel: ProfileViewModel(therapySettings: TherapySettings()))
++                .colorScheme(.light)
++                .previewDevice(PreviewDevice(rawValue: "iPhone SE 2"))
++                .previewDisplayName("SE light (Empty TherapySettings)")
++                .environmentObject(DisplayGlucoseUnitObservable(displayGlucoseUnit: .millimolesPerLiter))
++        }
++    }
++}
++*/
