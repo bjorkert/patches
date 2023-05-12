@@ -13,10 +13,10 @@ Copy the command using the copy-button (as shown in the picture below), paste (â
 ![Loop](img/copy_command.png)
 
 ## How to apply a patch when building with github:
-Use this page to select the patches you want:
-https://htmlpreview.github.io/?https://github.com/bjorkert/patches/blob/master/loop_patches.html
+Use this page to select the patches you want:  
+https://htmlpreview.github.io/?https://github.com/bjorkert/patches/blob/master/loop_patches.html  
 Copy the code using the copy-button
-In github, edit ".github/workflows/build_loop.yml" and paste the code ther.
+In github, edit ".github/workflows/build_loop.yml" and paste the code there.  
 Make sure "- name: Customize Loop..." is not already in the file, in that case remove the duplicate.
 
 &nbsp;
