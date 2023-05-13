@@ -63,6 +63,7 @@
         <label><input type="checkbox" id="option8"> Dash Fast Forward</label><br>
         <label><input type="checkbox" id="option9"> Basic I:C Bolus Calculation</label><br>
         <label><input type="checkbox" id="option10"> 2 hours Lolipop</label><br>
+        <label><input type="checkbox" id="option11"> Dexcom G6+G7 - Sensor Change</label><br>
     </div>
     <button id="copyButton">Copy to Clipboard</button>
     <textarea id="output" readonly></textarea>
@@ -137,6 +138,13 @@ const options = [
         text: `
           # 2 hours Lolipop
           curl https://raw.githubusercontent.com/bjorkert/patches/master/2hlollipop.patch | git apply
+`
+    },
+    {
+        id: 'option11',
+        text: `
+          # Dexcom G6+G7 - Sensor Change
+          curl https://raw.githubusercontent.com/bjorkert/patches/master/g6g7.patch | git apply
 `
     }
 ];

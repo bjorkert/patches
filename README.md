@@ -68,6 +68,9 @@ Additionally, this patch restores the feature to click on Loop's recommended val
 ## 2 hours Lolipop
 This patch reverts the carb absorption time for the lollipop (fast) icon in Loop 3 to its original value of 2 hours, which was used in Loop 2. The other default carb absorption times remain unchanged, so the taco (medium) icon remains at 3 hours, and the pizza (slow) icon remains at 5 hours, which is the same as in Loop 3. It's worth noting that Loop 2 had a carb absorption time of 4 hours for the pizza (slow) icon.
 &nbsp;
+## Dexcom G6+G7 - Sensor Change
+When replacing a sensor, this patch ensures that Loop updates Nightscout with a 'Sensor Change' treatment, resulting in an updated 'SAGE' pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
+&nbsp;
 &nbsp;
 # Loop Follow patches
 These patches are intended for the development branch of Loop Follow.
