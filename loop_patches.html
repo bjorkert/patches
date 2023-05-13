@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,20 +11,24 @@
             background-color: #f4f4f4;
             padding: 20px;
         }
+
         h1 {
             color: #333;
         }
+
         div {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
-            margin: 0px 0; 
+            margin: 0px 0;
             padding: 6px;
             background-color: #fff;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }       
+        }
+
         button {
             display: block;
             margin-top: 20px;
@@ -35,9 +40,11 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         textarea {
             width: 100%;
             height: 500px;
@@ -50,109 +57,116 @@
         }
     </style>
 </head>
+
 <body>
     <h1>Customize Loop</h1>
     <div>
         <label><input type="checkbox" id="option1"> Manual bolus threshold</label><br>
         <label><input type="checkbox" id="option2"> Omnipod Dash Site Change</label><br>
-        <label><input type="checkbox" id="option3"> Dexcom G6 - Sensor Change</label><br>
-        <label><input type="checkbox" id="option4"> Dexcom G6 - Upload Readings</label><br>
+        <label><input type="checkbox" id="option3"> Dexcom G6+G7 - Sensor Change</label><br>
+        <label><input type="checkbox" id="option4"> Dexcom G6+G7 - Upload Readings</label><br>
         <label><input type="checkbox" id="option5"> View PreMeal in Nightscout</label><br>
         <label><input type="checkbox" id="option6"> Future carbs 90 minutes</label><br>
         <label><input type="checkbox" id="option7"> Required carbs</label><br>
         <label><input type="checkbox" id="option8"> Dash Fast Forward</label><br>
         <label><input type="checkbox" id="option9"> Basic I:C Bolus Calculation</label><br>
         <label><input type="checkbox" id="option10"> 2 hours Lolipop</label><br>
-        <label><input type="checkbox" id="option11"> Dexcom G6+G7 - Sensor Change</label><br>
     </div>
     <button id="copyButton">Copy to Clipboard</button>
     <textarea id="output" readonly></textarea>
 
     <script>
-const options = [
-    {
-        id: 'option1',
-        text: `
-          # Loop: Manual bolus threshold
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/manualBolusThreshold.patch | git apply --directory=Loop
-`
-    },
-    {
-        id: 'option2',
-        text: `
-          # OmniBLE: Omnipod Dash Site Change
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/siteChange.patch | git apply --directory=OmniBLE
-`
-    },
-    {
-        id: 'option3',
-        text: `
-          # CGMBLEKit: Dexcom G6 - Sensor Change
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/g6_sensor_start.patch | git apply --directory=CGMBLEKit
-`
-    },
-    {
-        id: 'option4',
-        text: `
-          # CGMBLEKit: Dexcom G6 - Upload Readings
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/upload_readings.patch | git apply --directory=CGMBLEKit
-`
-    },
-    {
-        id: 'option5',
-        text: `
-          # Loop: View PreMeal in Nightscout
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/preMeal.patch | git apply --directory=Loop
-`
-    },
-    {
-        id: 'option6',
-        text: `
-          # Loop: Future carbs 90 minutes
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/90m.patch | git apply --directory=Loop
-`
-    },
-    {
-        id: 'option7',
-        text: `
-          # Required carbs
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/updateRequiredCarbs.patch | git apply
-`
-    },
-    {
-        id: 'option8',
-        text: `
-          # Dash Fast Forward
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/fast_forward.patch | git apply
-`
-    },
-    {
-        id: 'option9',
-        text: `
-          # Basic I:C Bolus Calculation
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/basicICBolusCalc.patch | git apply
-`
-    },
-    {
-        id: 'option10',
-        text: `
-          # 2 hours Lolipop
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/2hlollipop.patch | git apply
-`
-    },
-    {
-        id: 'option11',
-        text: `
-          # Dexcom G6+G7 - Sensor Change
-          curl https://raw.githubusercontent.com/bjorkert/patches/master/g6g7.patch | git apply
-`
-    }
-];
+        let options = [
+        ];
 
-        const initialText = `
-      # Customize Loop: Download and apply patches
-      - name: Customize Loop
-        run: |`;
+        function indent(level) {
+            return ' '.repeat(level * 2);
+        }
+
+        function addOption(id, comment, url, directory = '') {
+            let command = `curl ${url} | git apply`;
+            if (directory) {
+                command += ` --directory=${directory}`;
+            }
+
+            let text = `
+${indent(5)}# ${comment}
+${indent(5)}${command}
+`;
+
+            options.push({
+                id: id,
+                text: text
+            });
+        }
+
+        addOption(
+            'option1',
+            'Loop: Manual bolus threshold',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/manualBolusThreshold.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option2',
+            'OmniBLE: Omnipod Dash Site Change',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/siteChange.patch',
+            'OmniBLE'
+        );
+
+        addOption(
+            'option3',
+            'CGMBLEKit: Dexcom G6+G7 - Sensor Change',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/g6g7.patch'
+        );
+
+        addOption(
+            'option4',
+            'CGMBLEKit: Dexcom G6+G7 - Upload Readings',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/g6g7_upload_readings.patch'
+        );
+
+        addOption(
+            'option5',
+            'Loop: View PreMeal in Nightscout',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/preMeal.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option6',
+            'Loop: Future carbs 90 minutes',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/90m.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option7',
+            'Required carbs',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/updateRequiredCarbs.patch'
+        );
+
+        addOption(
+            'option8',
+            'Dash Fast Forward',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/fast_forward.patch'
+        );
+
+        addOption(
+            'option9',
+            'Basic I:C Bolus Calculation',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/basicICBolusCalc.patch'
+        );
+
+        addOption(
+            'option10',
+            '2 hours Lolipop',
+            'https://raw.githubusercontent.com/bjorkert/patches/master/2hlollipop.patch'
+        );
+
+        const initialText = indent(3) + `# Customize Loop: Download and apply patches
+${indent(3)}- name: Customize Loop
+${indent(4)}run: |`;
 
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
@@ -176,10 +190,11 @@ const options = [
         copyButton.addEventListener('click', () => {
             output.select();
             document.execCommand('copy');
-            alert('Text copied to clipboard');
+            alert('Text copied to clipboard!');
         });
 
         updateOutput();
     </script>
 </body>
+
 </html>

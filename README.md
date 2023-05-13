@@ -27,10 +27,10 @@ This patch provides a separate suspend threshold for meal and manual bolusing at
 ## Omnipod Dash Site Change
 When replacing a pod, this patch ensures that Loop updates Nightscout with a 'Pump Site Change'-treatment, resulting in an updated 'CAGE'-pill and pod change reminder in Loop Follow. Please note that this will happen on the next pod change after the patch is applied, and the date of current pod will not be updated.
 &nbsp;
-## Dexcom G6 - Sensor Change
+## Dexcom G6+G7 - Sensor Change
 When replacing a sensor, this patch ensures that Loop updates Nightscout with a 'Sensor Change' treatment, resulting in an updated 'SAGE' pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
 &nbsp;
-## Dexcom G6 - Upload Readings
+## Dexcom G6+G7 - Upload Readings
 This patch automatically sets the 'Upload readings' option to 'On' by default when changing the transmitter. This change addresses the common issue of users forgetting to change the setting, resulting in no blood sugar values being sent to Nightscout.
 &nbsp;
 ## View PreMeal in Nightscout
@@ -67,9 +67,6 @@ Additionally, this patch restores the feature to click on Loop's recommended val
 &nbsp;
 ## 2 hours Lolipop
 This patch reverts the carb absorption time for the lollipop (fast) icon in Loop 3 to its original value of 2 hours, which was used in Loop 2. The other default carb absorption times remain unchanged, so the taco (medium) icon remains at 3 hours, and the pizza (slow) icon remains at 5 hours, which is the same as in Loop 3. It's worth noting that Loop 2 had a carb absorption time of 4 hours for the pizza (slow) icon.
-&nbsp;
-## Dexcom G6+G7 - Sensor Change
-When replacing a sensor, this patch ensures that Loop updates Nightscout with a 'Sensor Change' treatment, resulting in an updated 'SAGE' pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
 &nbsp;
 &nbsp;
 # Loop Follow patches
