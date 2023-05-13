@@ -143,6 +143,7 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     add_patch "Dash Fast Forward" "fast_forward" ""
     add_patch "Basic I:C Bolus Calculation" "basicICBolusCalc" ""
     add_patch "2 hours Lolipop" "2hlollipop" ""
+    add_patch "Dexcom G6+G7 - Sensor change" "g6g7" ""
 
     echo "Downloading patches, please wait..."
     cd $mytmpdir
