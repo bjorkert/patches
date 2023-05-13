@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,20 +11,24 @@
             background-color: #f4f4f4;
             padding: 20px;
         }
+
         h1 {
             color: #333;
         }
+
         div {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
-            margin: 0px 0; 
+            margin: 0px 0;
             padding: 6px;
             background-color: #fff;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }       
+        }
+
         button {
             display: block;
             margin-top: 20px;
@@ -35,9 +40,11 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         textarea {
             width: 100%;
             height: 500px;
@@ -50,13 +57,14 @@
         }
     </style>
 </head>
+
 <body>
     <h1>Customize Loop</h1>
     <div>
         <label><input type="checkbox" id="option1"> Increase Future Carbs Limit to 4 hours</label><br>
         <label><input type="checkbox" id="option2"> Libre Users: Limit Loop to <5 minutes</label><br>
         <label><input type="checkbox" id="option3"> Modify Carb Warning & Limit: Low Carb to 49 & 99</label><br>
-        <label><input type="checkbox" id="option4"> Modify Carb Warning & Limit: High Carb to 201 & 300</label><br>
+        <label><input type="checkbox" id="option4"> Modify Carb Warning & Limit: High Carb to 201 &300</label><br>
         <label><input type="checkbox" id="option5"> Disable Authentication Requirement</label><br>
         <label><input type="checkbox" id="option6"> Override Insulin Needs Picker (50% to 200%, steps of 5%)</label><br>
         <label><input type="checkbox" id="option7"> CAGE: Upload Pod Start to Nightscout</label><br>
@@ -67,76 +75,95 @@
     <textarea id="output" readonly></textarea>
 
     <script>
-        const options = [
-            {
-                id: 'option1',
-                text: `
-          # Loop: Increase future carb time limit to 4 hours from 1 hour default
-          curl https://github.com/loopnlearn/Loop/commit/a974b6749ef4506ca679a0061c260dabcfbf9ee2.patch | git apply --directory=Loop
-`
-            },
-            {
-                id: 'option2',
-                text: `
-          # Loop: LoopDataManager: Limit loop cycles to no more frequent than once every 4.8 minutes
-          curl https://github.com/loopnlearn/Loop/commit/414588c5e7dc36f692c8bbcf2d97adde1861072a.patch | git apply --directory=Loop
-`
-            },
-            {
-                id: 'option3',
-                text: `
-          # Loop: LoopConstants: Limit carb entry to 99 and shows warning if over 49 g
-          curl https://github.com/loopnlearn/Loop/commit/d9939c65a6b2fc088ee5acdf0d9dc247ad30986c.patch | git apply --directory=Loop
-`
-            },
-            {
-                id: 'option4',
-                text: `
-          # Loop: Modify Carb Warning & Limit: High Carb to 201 & 300
-          curl https://github.com/loopnlearn/Loop/commit/a79482ac638736c2b3b8c5057b48e3097323a522.patch | git apply --directory=Loop
-`
-            },
-            {
-                id: 'option5',
-                text: `
-          # LoopKit: Disable Authentication Requirement
-          curl https://github.com/loopnlearn/LoopKit/commit/77ee44534dd16154d910cfb11dea240cf8a23262.patch | git apply --directory=LoopKit
-`
-            },
-            {
-                id: 'option6',
-                text: `
-          # LoopKit: Override Insulin Needs Picker (50% to 200%, steps of 5%)
-          curl https://github.com/loopnlearn/LoopKit/commit/f35654104f70b7dc70f750d129fbb338b9a4cee0.patch | git apply --directory=LoopKit
-`
-            },
-            {
-                id: 'option7',
-                text: `
-          # CAGE: Upload Pod Start to Nightscout
-          curl https://raw.githubusercontent.com/loopnlearn/loopbuildscripts/main/patch/cage.patch | git apply
-`
-            },
-            {
-                id: 'option8',
-                text: `
-          # CGMBLEKit: SAGE: Upload G6 Sensor Start to Nightscout
-          curl https://github.com/loopnlearn/CGMBLEKit/commit/777c7e36de64bdc060973a6628a02add0917520e.patch | git apply --directory=CGMBLEKit
-`
-            },
-            {
-                id: 'option9',
-                text: `
-          # CGMBLEKit: Change Default to Upload G6 Readings
-          curl https://github.com/loopnlearn/CGMBLEKit/commit/b9638cc7cef74b1da74c950c0dbb3525f157e11f.patch | git apply --directory=CGMBLEKit
-`
-            }
+        let options = [
         ];
 
-        const initialText = `
-      # Customize Loop: Download and apply patches
-      - name: Customize Loop
-        run: |`;
+        function indent(level) {
+            return ' '.repeat(level * 2);
+        }
+
+        function addOption(id, comment, url, directory = '') {
+            let command = `curl ${url} | git apply`;
+            if (directory) {
+                command += ` --directory=${directory}`;
+            }
+
+            let text = `
+${indent(5)}# ${comment}
+${indent(5)}${command}
+`;
+
+            options.push({
+                id: id,
+                text: text
+            });
+        }
+
+        addOption(
+            'option1',
+            'Loop: Increase future carb time limit to 4 hours from 1 hour default',
+            'https://github.com/loopnlearn/Loop/commit/a974b6749ef4506ca679a0061c260dabcfbf9ee2.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option2',
+            'Loop: LoopDataManager: Limit loop cycles to no more frequent than once every 4.8 minutes',
+            'https://github.com/loopnlearn/Loop/commit/414588c5e7dc36f692c8bbcf2d97adde1861072a.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option3',
+            'Loop: LoopConstants: Limit carb entry to 99 and shows warning if over 49 g',
+            'https://github.com/loopnlearn/Loop/commit/d9939c65a6b2fc088ee5acdf0d9dc247ad30986c.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option4',
+            'Loop: Modify Carb Warning & Limit: High Carb to 201 & 300',
+            'https://github.com/loopnlearn/Loop/commit/a79482ac638736c2b3b8c5057b48e3097323a522.patch',
+            'Loop'
+        );
+
+        addOption(
+            'option5',
+            'LoopKit: Disable Authentication Requirement',
+            'https://github.com/loopnlearn/LoopKit/commit/77ee44534dd16154d910cfb11dea240cf8a23262.patch',
+            'LoopKit'
+        );
+
+        addOption(
+            'option6',
+            'LoopKit: Override Insulin Needs Picker (50% to 200%, steps of 5%)',
+            'https://github.com/loopnlearn/LoopKit/commit/f35654104f70b7dc70f750d129fbb338b9a4cee0.patch',
+            'LoopKit'
+        );
+
+        addOption(
+            'option7',
+            'CAGE: Upload Pod Start to Nightscout',
+            'https://raw.githubusercontent.com/loopnlearn/loopbuildscripts/main/patch/cage.patch'
+        );
+
+        addOption(
+            'option8',
+            'CGMBLEKit: SAGE: Upload G6 Sensor Start to Nightscout',
+            'https://github.com/loopnlearn/CGMBLEKit/commit/777c7e36de64bdc060973a6628a02add0917520e.patch',
+            'CGMBLEKit'
+        );
+
+        addOption(
+            'option9',
+            'CGMBLEKit: Change Default to Upload G6 Readings',
+            'https://github.com/loopnlearn/CGMBLEKit/commit/b9638cc7cef74b1da74c950c0dbb3525f157e11f.patch',
+            'CGMBLEKit'
+        );
+
+        const initialText = indent(3) + `# Customize Loop: Download and apply patches
+${indent(3)}- name: Customize Loop
+${indent(4)}run: |`;
 
         const output = document.getElementById('output');
         const copyButton = document.getElementById('copyButton');
@@ -160,10 +187,11 @@
         copyButton.addEventListener('click', () => {
             output.select();
             document.execCommand('copy');
-            alert('Text copied to clipboard');
+            alert('Text copied to clipboard!');
         });
 
         updateOutput();
     </script>
 </body>
+
 </html>
