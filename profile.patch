@@ -1,16 +1,4 @@
 Submodule Loop contains modified content
-diff --git a/Loop/Loop/View Controllers/StatusTableViewController.swift b/Loop/Loop/View Controllers/StatusTableViewController.swift
-index 904f64ca..cb91bbd1 100644
---- a/Loop/Loop/View Controllers/StatusTableViewController.swift	
-+++ b/Loop/Loop/View Controllers/StatusTableViewController.swift	
-@@ -147,7 +147,6 @@ final class StatusTableViewController: LoopChartsTableViewController {
-         addScenarioStepGestureRecognizers()
- 
-         tableView.backgroundColor = .secondarySystemBackground
--    
-     }
- 
-     override func didReceiveMemoryWarning() {
 diff --git a/Loop/Loop/Views/SettingsView.swift b/Loop/Loop/Views/SettingsView.swift
 index 90859273..5407eab9 100644
 --- a/Loop/Loop/Views/SettingsView.swift
@@ -149,10 +137,10 @@ index 6b13fc8..59fc2cd 100644
  				B41A60AF23D1DB5B00636320 /* TableViewTitleLabel.swift in Sources */,
 diff --git a/LoopKit/LoopKitUI/ViewModels/ProfileViewModel+FileManagement.swift b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel+FileManagement.swift
 new file mode 100644
-index 0000000..5e409ef
+index 0000000..f1c203f
 --- /dev/null
 +++ b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel+FileManagement.swift
-@@ -0,0 +1,216 @@
+@@ -0,0 +1,231 @@
 +//
 +//  ProfileViewModel+FileManagement.swift
 +//  LoopKitUI
@@ -193,6 +181,10 @@ index 0000000..5e409ef
 +    }
 +}
 +
++public enum LoadProfileResult {
++    case success
++    case failure(Error)
++}
 +
 +// MARK: File management
 +extension ProfileViewModel {
@@ -275,20 +267,31 @@ index 0000000..5e409ef
 +        }
 +    }
 +
-+    public func loadProfile(profile: ProfileReference) {
++    public func loadProfile(profile: ProfileReference, completion: @escaping (LoadProfileResult) -> Void) {
 +        do {
 +            let fileURL = profilesDirectory.appendingPathComponent(profile.fileName)
 +            let data = try Data(contentsOf: fileURL)
 +            let loadedProfile = try decodeProfile(from: data)
 +
-+            saveCorrectionRange(range: loadedProfile.correctionRange)
-+            saveCarbRatioSchedule(carbRatioSchedule: loadedProfile.carbRatioSchedule)
-+            saveBasalRates(basalRates: loadedProfile.basalRateSchedule)
-+            saveInsulinSensitivitySchedule(insulinSensitivitySchedule: loadedProfile.insulinSensitivitySchedule)
-+
-+            print("New profile loaded")
++            delegate?.syncBasalRateSchedule(items: loadedProfile.basalRateSchedule.items, completion: { [weak self] result in
++                switch result {
++                case .success(let syncedSchedule):
++                    DispatchQueue.main.async {
++                        self?.saveCorrectionRange(range: loadedProfile.correctionRange)
++                        self?.saveCarbRatioSchedule(carbRatioSchedule: loadedProfile.carbRatioSchedule)
++                        self?.saveBasalRates(basalRates: syncedSchedule)
++                        self?.saveInsulinSensitivitySchedule(insulinSensitivitySchedule: loadedProfile.insulinSensitivitySchedule)
++                        print("New profile loaded")
++                        completion(.success)
++                    }
++                case .failure(let error):
++                    print("An error occurred while syncing basal rates: \(error)")
++                    completion(.failure(error))
++                }
++            })
 +        } catch {
 +            print("An error occurred while loading profile: \(error)")
++            completion(.failure(error))
 +        }
 +    }
 +
@@ -532,10 +535,10 @@ index 0000000..4fcbea1
 +}
 diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift
 new file mode 100644
-index 0000000..945ce79
+index 0000000..5b52f89
 --- /dev/null
 +++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift	
-@@ -0,0 +1,174 @@
+@@ -0,0 +1,184 @@
 +//
 +//  ProfileView.swift
 +//  LoopKitUI
@@ -634,8 +637,18 @@ index 0000000..945ce79
 +                                let validationResult = viewModel.validateProfile(profile)
 +                                switch validationResult {
 +                                case .success:
-+                                    viewModel.loadProfile(profile: profile)
-+                                    dismissAction()
++                                    viewModel.loadProfile(profile: profile) { result in
++                                        switch result {
++                                        case .success:
++                                            dismissAction()
++                                        case .failure(let error):
++                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
++                                                self.errorText = error.localizedDescription
++                                                self.activeAlert = .error
++                                                self.showingAlert = true
++                                            }
++                                        }
++                                    }
 +                                case .failure(let error):
 +                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
 +                                        self.errorText = error.localizedDescription
