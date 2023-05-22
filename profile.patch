@@ -536,10 +536,10 @@ index 0000000..4fcbea1
 +}
 diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift
 new file mode 100644
-index 0000000..5b52f89
+index 0000000..1648330
 --- /dev/null
 +++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift	
-@@ -0,0 +1,184 @@
+@@ -0,0 +1,186 @@
 +//
 +//  ProfileView.swift
 +//  LoopKitUI
@@ -592,26 +592,28 @@ index 0000000..5b52f89
 +                                .fixedSize(horizontal: false, vertical: true) // this allows the text to wrap
 +                                .textCase(nil) // keeps the original text casing
 +
-+                            List {
-+                                ForEach(viewModel.profiles, id: \.fileName) { profile in
-+                                    HStack {
-+                                        Button(action: {
-+                                            selectedProfile = profile
-+                                            activeAlert = .load
-+                                            showingAlert = true
-+                                        }) {
-+                                            Text(profile.name)
++                            if !viewModel.profiles.isEmpty {
++                                List {
++                                    ForEach(viewModel.profiles, id: \.fileName) { profile in
++                                        HStack {
++                                            Button(action: {
++                                                selectedProfile = profile
++                                                activeAlert = .load
++                                                showingAlert = true
++                                            }) {
++                                                Text(profile.name)
++                                            }
 +                                        }
 +                                    }
-+                                }
-+                                .onDelete { indexSet in
-+                                    for index in indexSet {
-+                                        selectedProfile = viewModel.profiles[index]
-+                                        activeAlert = .delete
-+                                        showingAlert = true
++                                    .onDelete { indexSet in
++                                        for index in indexSet {
++                                            selectedProfile = viewModel.profiles[index]
++                                            activeAlert = .delete
++                                            showingAlert = true
++                                        }
 +                                    }
-+                                }
-+                            }.padding(.top, -15)
++                                }.padding(.top, -15)
++                            }
 +                        }
 +                    },
 +                    actionArea: { EmptyView() } // no action area in this case
