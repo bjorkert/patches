@@ -137,3 +137,810 @@ index c744054..e864d86 100644
  				892A5DB32231E191008961AB /* LevelHUDView.swift in Sources */,
  				B41A60B223D1DBC700636320 /* UIFont.swift in Sources */,
  				B41A60AF23D1DB5B00636320 /* TableViewTitleLabel.swift in Sources */,
+diff --git a/LoopKit/LoopKitUI/ViewModels/ProfileViewModel+FileManagement.swift b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel+FileManagement.swift
+new file mode 100644
+index 0000000..a809073
+--- /dev/null
++++ b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel+FileManagement.swift
+@@ -0,0 +1,232 @@
++//
++//  ProfileViewModel+FileManagement.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-05-19.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import LoopKit
++import HealthKit
++
++public enum ProfileValidationError: Error, LocalizedError {
++    case fileLoadError
++    case unsupportedIncrement
++    case correctionRangeError
++    case insulinSensitivityError
++    case carbRatioError
++    case basalRateError
++    case maxBasalRateNotSet
++
++    public var errorDescription: String? {
++        switch self {
++        case .fileLoadError:
++            return "Unable to load the profile file."
++        case .unsupportedIncrement:
++            return "The profile contains unsupported increments."
++        case .correctionRangeError:
++            return "Correction Range values are out of bounds."
++        case .insulinSensitivityError:
++            return "Insulin Sensitivity values are out of bounds."
++        case .carbRatioError:
++            return "Carb Ratio values are out of bounds."
++        case .basalRateError:
++            return "Basal Rate values are out of bounds."
++        case .maxBasalRateNotSet:
++            return "Maximum Basal Rate is not set."
++        }
++    }
++}
++
++public enum LoadProfileResult {
++    case success
++    case failure(Error)
++}
++
++// MARK: File management
++extension ProfileViewModel {
++    private var profilesDirectory: URL {
++        let fileManager = FileManager.default
++        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
++        return documentsDirectory.appendingPathComponent("LoopProfile")
++    }
++
++    private func createProfileDirectoryIfNotExists() throws {
++        let fileManager = FileManager.default
++        var isDir : ObjCBool = false
++        if !fileManager.fileExists(atPath: profilesDirectory.path, isDirectory: &isDir) {
++            try fileManager.createDirectory(at: profilesDirectory, withIntermediateDirectories: true, attributes: nil)
++        } else if !isDir.boolValue {
++            throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteFileExistsError, userInfo: nil)
++        }
++    }
++
++
++    private func getAllProfileFiles() throws -> [URL] {
++        let fileManager = FileManager.default
++        let files = try fileManager.contentsOfDirectory(at: profilesDirectory, includingPropertiesForKeys: nil)
++        return files.filter { $0.pathExtension == "json" }
++    }
++
++    private func encodeProfile(_ profile: Profile) throws -> Data {
++        return try JSONEncoder().encode(profile)
++    }
++
++    private func decodeProfile(from data: Data) throws -> Profile {
++        return try JSONDecoder().decode(Profile.self, from: data)
++    }
++
++    public func saveProfile(withName name: String) {
++        do {
++            try createProfileDirectoryIfNotExists()
++
++            if let existingProfile = getProfileReference(withName: name) {
++                removeProfile(profileReference: existingProfile)
++            }
++
++            let profile = Profile(
++                name: name,
++                correctionRange: (therapySettings.glucoseTargetRangeSchedule?.schedule(for: .milligramsPerDeciliter)!)!,
++                carbRatioSchedule: therapySettings.carbRatioSchedule!,
++                basalRateSchedule: therapySettings.basalRateSchedule!,
++                insulinSensitivitySchedule: (therapySettings.insulinSensitivitySchedule?.schedule(for: .milligramsPerDeciliter)!)!
++            )
++
++            let jsonData = try encodeProfile(profile)
++
++            let dateFormatter = DateFormatter()
++            dateFormatter.dateFormat = "yyyy-MM-dd-HH-mm-ss"
++            let fileName = dateFormatter.string(from: Date()) + ".json"
++            let fileURL = profilesDirectory.appendingPathComponent(fileName)
++
++            try jsonData.write(to: fileURL)
++
++            self.loadProfiles()
++        } catch {
++            print("An error occurred while saving profile: \(error)")
++        }
++    }
++
++    public func loadProfiles() {
++        do {
++            let profileFiles = try getAllProfileFiles()
++
++            var newProfiles = [ProfileReference]()
++            for fileURL in profileFiles {
++                let data = try Data(contentsOf: fileURL)
++                let profile = try decodeProfile(from: data)
++                let profileRef = ProfileReference(name: profile.name, fileName: fileURL.lastPathComponent)
++                newProfiles.append(profileRef)
++            }
++
++            self.profiles = newProfiles
++        } catch {
++            print("An error occurred while loading profiles: \(error)")
++        }
++    }
++
++    public func loadProfile(profile: Profile, completion: @escaping (LoadProfileResult) -> Void) {
++        do {
++            delegate?.syncBasalRateSchedule(items: profile.basalRateSchedule.items, completion: { [weak self] result in
++                switch result {
++                case .success(let syncedSchedule):
++                    DispatchQueue.main.async {
++                        self?.saveCorrectionRange(range: profile.correctionRange)
++                        self?.saveCarbRatioSchedule(carbRatioSchedule: profile.carbRatioSchedule)
++                        self?.saveBasalRates(basalRates: syncedSchedule)
++                        self?.saveInsulinSensitivitySchedule(insulinSensitivitySchedule: profile.insulinSensitivitySchedule)
++                        print("New profile loaded")
++                        completion(.success)
++                    }
++                case .failure(let error):
++                    print("An error occurred while syncing basal rates: \(error)")
++                    completion(.failure(error))
++                }
++            })
++        }
++    }
++
++    func getProfileReference(withName name: String) -> ProfileReference? {
++        return profiles.first(where: { $0.name == name })
++    }
++
++    public func removeProfile(profile: Profile) {
++        guard let profileReference = getProfileReference(withName: profile.name) else {
++            print("No ProfileReference found for given Profile")
++            return
++        }
++
++        removeProfile(profileReference: profileReference)
++    }
++
++    public func removeProfile(profileReference: ProfileReference) {
++        do {
++            let fileManager = FileManager.default
++            let fileURL = profilesDirectory.appendingPathComponent(profileReference.fileName)
++            try fileManager.removeItem(at: fileURL)
++            loadProfiles()
++        } catch {
++            print("An error occurred while removing profile: \(error)")
++        }
++    }
++
++    func doesProfileExist(withName name: String) -> Bool {
++        return profiles.contains(where: { $0.name == name })
++    }
++
++    public func getProfile(from profileReference: ProfileReference) throws -> Profile {
++        let fileURL = profilesDirectory.appendingPathComponent(profileReference.fileName)
++        let data = try Data(contentsOf: fileURL)
++        let getProfile = try decodeProfile(from: data)
++        return getProfile
++    }
++
++    public func validateProfile(_ profile: Profile) -> Result<Void, ProfileValidationError> {
++        guard let supportedIncrements = delegate?.pumpSupportedIncrements() else {
++            return .failure(.fileLoadError)
++        }
++
++        // Checking Correction Range Schedule
++        for item in profile.correctionRange.items {
++            let minValue = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: item.value.minValue)
++            let maxValue = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: item.value.maxValue)
++
++            if !(Guardrail.correctionRange.absoluteBounds.contains(minValue) && Guardrail.correctionRange.absoluteBounds.contains(maxValue)) {
++                return .failure(.correctionRangeError)
++            }
++        }
++
++        // Checking Insulin Sensitivity Schedule
++        for item in profile.insulinSensitivitySchedule.items {
++            let value = HKQuantity(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: .internationalUnit()), doubleValue: item.value)
++
++            if !Guardrail.insulinSensitivity.absoluteBounds.contains(value) {
++                return .failure(.insulinSensitivityError)
++            }
++        }
++
++        // Checking Carb Ratio Schedule
++        for item in profile.carbRatioSchedule.items {
++            let value = HKQuantity(unit: .gramsPerUnit, doubleValue: item.value)
++
++            if !Guardrail.carbRatio.absoluteBounds.contains(value) {
++                return .failure(.carbRatioError)
++            }
++        }
++
++        // Checking Basal Rate Schedule
++        if let maximumBasalRate = therapySettings.maximumBasalRatePerHour {
++            for item in profile.basalRateSchedule.items {
++                let value = item.value
++
++                if value > maximumBasalRate || !supportedIncrements.basalRates.contains(value) {
++                    return .failure(.basalRateError)
++                }
++            }
++        } else {
++            return .failure(.maxBasalRateNotSet)
++        }
++
++        return .success(())
++    }
++}
+diff --git a/LoopKit/LoopKitUI/ViewModels/ProfileViewModel.swift b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel.swift
+new file mode 100644
+index 0000000..7799d32
+--- /dev/null
++++ b/LoopKit/LoopKitUI/ViewModels/ProfileViewModel.swift
+@@ -0,0 +1,74 @@
++//
++//  ProfileViewModel.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-04-22.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import Combine
++import LoopKit
++import HealthKit
++import SwiftUI
++
++public class ProfileViewModel: ObservableObject {
++
++    @Published public var therapySettings: TherapySettings
++    @Published public var profiles = [ProfileReference]()
++
++    internal weak var delegate: TherapySettingsViewModelDelegate?
++
++    public init(therapySettings: TherapySettings,
++                pumpSupportedIncrements: (() -> PumpSupportedIncrements?)? = nil,
++                sensitivityOverridesEnabled: Bool = false,
++                adultChildInsulinModelSelectionEnabled: Bool = false,
++                prescription: Prescription? = nil,
++                delegate: TherapySettingsViewModelDelegate? = nil) {
++        self.therapySettings = therapySettings
++        self.delegate = delegate
++        self.loadProfiles()
++    }
++
++    public func pumpSupportedIncrements() -> PumpSupportedIncrements? {
++        return delegate?.pumpSupportedIncrements()
++    }
++}
++
++public struct Profile: Codable {
++    let name: String
++    let correctionRange: GlucoseRangeSchedule
++    let carbRatioSchedule: CarbRatioSchedule
++    let basalRateSchedule: BasalRateSchedule
++    let insulinSensitivitySchedule: InsulinSensitivitySchedule
++}
++
++public struct ProfileReference: Codable, Equatable {
++    var name: String
++    var fileName: String
++}
++
++
++// MARK: Saving
++extension ProfileViewModel {
++
++    public func saveCorrectionRange(range: GlucoseRangeSchedule) {
++        therapySettings.glucoseTargetRangeSchedule = range
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveBasalRates(basalRates: BasalRateSchedule) {
++        therapySettings.basalRateSchedule = basalRates
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveCarbRatioSchedule(carbRatioSchedule: CarbRatioSchedule) {
++        therapySettings.carbRatioSchedule = carbRatioSchedule
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++
++    public func saveInsulinSensitivitySchedule(insulinSensitivitySchedule: InsulinSensitivitySchedule) {
++        therapySettings.insulinSensitivitySchedule = insulinSensitivitySchedule
++        delegate?.saveCompletion(therapySettings: therapySettings)
++    }
++}
+diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/NewProfileEditor.swift b/LoopKit/LoopKitUI/Views/Settings Editors/NewProfileEditor.swift
+new file mode 100644
+index 0000000..446910e
+--- /dev/null
++++ b/LoopKit/LoopKitUI/Views/Settings Editors/NewProfileEditor.swift	
+@@ -0,0 +1,79 @@
++//
++//  NewProfileEditor.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-05-19.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import SwiftUI
++
++struct NewProfileEditor: View {
++    @Binding var isPresented: Bool
++    @State var newProfileName: String
++    var viewModel: ProfileViewModel
++    @State private var showAlert = false
++
++    var body: some View {
++        VStack(spacing: 0) {
++            ModalHeaderButtonBar(
++                leading: { cancelButton },
++                center: {
++                    Text("New Profile")
++                        .font(.headline)
++                },
++                trailing: { addButton }
++            )
++
++            TextField("Profile Name", text: $newProfileName)
++                .textFieldStyle(RoundedBorderTextFieldStyle())
++                .padding()
++                .background(
++                    RoundedCorners(radius: 10, corners: [.bottomLeft, .bottomRight])
++                        .fill(Color(.secondarySystemGroupedBackground))
++                )
++        }
++        .padding(.horizontal)
++        .alert(isPresented: $showAlert) {
++            Alert(
++                title: Text("Overwrite Existing Profile"),
++                message: Text("A profile with this name already exists. Would you like to overwrite it?"),
++                primaryButton: .destructive(Text("Overwrite")) {
++                    self.viewModel.saveProfile(withName: self.newProfileName)
++                    self.isPresented = false
++                },
++                secondaryButton: .cancel()
++            )
++        }
++    }
++
++    var addButton: some View {
++        Button(
++            action: {
++                withAnimation {
++                    if viewModel.doesProfileExist(withName: self.newProfileName) {
++                        self.showAlert = true
++                    } else {
++                        self.viewModel.saveProfile(withName: self.newProfileName)
++                        self.isPresented = false
++                    }
++                }
++            }, label: {
++                Text("Add")
++            }
++        )
++    }
++
++    var cancelButton: some View {
++        Button(
++            action: {
++                withAnimation {
++                    self.isPresented = false
++                }
++            }, label: {
++                Text("Cancel")
++            }
++        )
++    }
++}
+diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfilePreviewView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfilePreviewView.swift
+new file mode 100644
+index 0000000..a056915
+--- /dev/null
++++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfilePreviewView.swift	
+@@ -0,0 +1,277 @@
++//
++//  ProfilePreviewView.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-05-23.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import SwiftUI
++import HealthKit
++import LoopKit
++
++struct ProfilePreviewView: View {
++    @EnvironmentObject private var displayGlucoseUnitObservable: DisplayGlucoseUnitObservable
++    @ObservedObject var viewModel: ProfileViewModel
++    @Environment(\.dismissAction) var dismissAction
++    @Environment(\.presentationMode) var presentationMode
++    var profile: Profile
++
++    @State private var showingAlert = false
++    @State private var activeAlert: ActiveAlert = .load
++    @State private var errorText: String?
++
++    let nilDestination: (_ dismiss: @escaping () -> Void) -> AnyView = { _ in AnyView(EmptyView()) }
++
++    var body: some View {
++        ScrollView {
++            VStack(alignment: .leading) {
++                Text("Review this profile before choosing to Load or Return to profile screen.")
++                    .font(.subheadline)
++                    .foregroundColor(.secondary)
++                    .padding([.leading, .trailing])
++                    .fixedSize(horizontal: false, vertical: true) // this allows the text to wrap
++                    .textCase(nil) // keeps the original text casing
++
++                profileCardStack
++
++                Button(action: {
++                    activeAlert = .load
++                    showingAlert = true
++                }) {
++                    HStack {
++                        Spacer()
++                        Text("Load")
++                            .foregroundColor(.white)
++                            .padding()
++                        Spacer()
++                    }
++                }
++                .background(Color.blue)
++                .cornerRadius(10)
++                .padding(.horizontal)
++
++                Button(action: {
++                    activeAlert = .delete
++                    showingAlert = true
++                }) {
++                    HStack {
++                        Spacer()
++                        Text("Delete")
++                            .foregroundColor(.white)
++                            .padding()
++                        Spacer()
++                    }
++                }
++                .background(Color.red)
++                .cornerRadius(10)
++                .padding(.horizontal)
++
++            }
++        }
++        .navigationBarHidden(false)
++        .background(Color(.systemGroupedBackground))
++        .navigationTitle(Text(profile.name))
++        .alert(isPresented: $showingAlert) {
++            switch activeAlert {
++            case .load:
++                return Alert(
++                    title: Text("Load Profile"),
++                    message: Text("Do you want to load the profile \(profile.name)?"),
++                    primaryButton: .default(Text("Yes"), action: {
++                        let validationResult = viewModel.validateProfile(profile)
++                        switch validationResult {
++                        case .success:
++                            viewModel.loadProfile(profile: profile) { result in
++                                switch result {
++                                case .success:
++                                    dismissAction()
++                                case .failure(let error):
++                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
++                                        self.errorText = error.localizedDescription
++                                        self.activeAlert = .error
++                                        self.showingAlert = true
++                                    }
++                                }
++                            }
++                        case .failure(let error):
++                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
++                                self.errorText = error.localizedDescription
++                                self.activeAlert = .error
++                                self.showingAlert = true
++                            }
++                        }
++                    }),
++                    secondaryButton: .cancel()
++                )
++            case .delete:
++                return Alert(
++                    title: Text("Delete Profile"),
++                    message: Text("Are you sure you want to delete the profile \(profile.name)? This action cannot be undone."),
++                    primaryButton: .destructive(Text("Delete"), action: {
++                        viewModel.removeProfile(profile: profile)
++                        self.presentationMode.wrappedValue.dismiss()
++                    }),
++                    secondaryButton: .cancel()
++                )
++            case .error:
++                return Alert(
++                    title: Text("Error loading profile"),
++                    message: Text(errorText ?? "Unknown error"),
++                    dismissButton: .default(Text("OK"))
++                )
++            }
++        }
++    }
++
++    private var profileCardStack: CardStack {
++        var cards: [Card] = []
++
++        cards.append(correctionRangeSection)
++        cards.append(carbRatioSection)
++        cards.append(basalRatesSection)
++        cards.append(insulinSensitivitiesSection)
++
++        return CardStack(cards: cards)
++    }
++
++    private var correctionRangeSection: Card {
++        card(for: .glucoseTargetRange) {
++            if let items = profile.correctionRange.schedule(for: glucoseUnit)?.items {
++                SectionDivider()
++                ForEach(items.indices, id: \.self) { index in
++                    if index > 0 {
++                        SettingsDivider()
++                    }
++
++                    ScheduleRangeItem(time: items[index].startTime,
++                                      range: items[index].value,
++                                      unit: glucoseUnit,
++                                      guardrail: .correctionRange)
++                }
++            }
++        }
++    }
++
++    private var carbRatioSection: Card {
++        card(for: .carbRatio) {
++            SectionDivider()
++            let items = profile.carbRatioSchedule.items
++            ForEach(items.indices, id: \.self) { index in
++                if index > 0 {
++                    SettingsDivider()
++                }
++
++                ScheduleValueItem(time: items[index].startTime,
++                                  value: items[index].value,
++                                  unit: .gramsPerUnit,
++                                  guardrail: .carbRatio)
++            }
++        }
++    }
++
++    private var basalRatesSection: Card {
++        card(for: .basalRate) {
++            let items = profile.basalRateSchedule.items
++            if let supportedBasalRates = viewModel.pumpSupportedIncrements()?.basalRates
++            {
++                SectionDivider()
++                let total = profile.basalRateSchedule.total()
++                ForEach(items.indices, id: \.self) { index in
++                    if index > 0 {
++                        SettingsDivider()
++                    }
++
++                    ScheduleValueItem(time: items[index].startTime,
++                                      value:  items[index].value,
++                                      unit: .internationalUnitsPerHour,
++                                      guardrail: .basalRate(supportedBasalRates: supportedBasalRates))
++                }
++                HStack {
++                    Text("Total")
++                        .bold()
++                        .foregroundColor(.primary)
++                    Spacer()
++                    Text(String(format: "%.2f ",total))
++                        .foregroundColor(.primary) +
++                    Text("U/day")
++                        .foregroundColor(.secondary)
++                }
++            }
++        }
++    }
++
++    private var insulinSensitivitiesSection: Card {
++        card(for: .insulinSensitivity) {
++            if let items = profile.insulinSensitivitySchedule.schedule(for: glucoseUnit)?.items
++            {
++                SectionDivider()
++                ForEach(items.indices, id: \.self) { index in
++                    if index > 0 {
++                        SettingsDivider()
++                    }
++                    ScheduleValueItem(time: items[index].startTime,
++                                      value: items[index].value,
++                                      unit: sensitivityUnit,
++                                      guardrail: .insulinSensitivity)
++                }
++            }
++        }
++    }
++}
++
++
++struct SectionWithContent<Content>: View where Content: View {
++    let title: String
++    let content: Content
++
++    init(title: String,
++         content: () -> Content)
++    {
++        self.title = title
++        self.content = content()
++    }
++
++    public var body: some View {
++        Section {
++            Text(title)
++                .bold()
++                .frame(maxWidth: .infinity, alignment: .leading)
++            content
++        }
++    }
++}
++
++// MARK: Utilities
++extension ProfilePreviewView {
++
++    private var glucoseUnit: HKUnit {
++        displayGlucoseUnitObservable.displayGlucoseUnit
++    }
++
++    private var sensitivityUnit: HKUnit {
++        glucoseUnit.unitDivided(by: .internationalUnit())
++    }
++
++    private func card<Content>(for therapySetting: TherapySetting, @ViewBuilder content: @escaping () -> Content) -> Card where Content: View {
++        Card {
++            SectionWithContent(title: therapySetting.title,
++                               content: content)
++        }
++    }
++}
++
++fileprivate struct SectionDivider: View {
++    var body: some View {
++        Divider()
++            .padding(.trailing, -16)
++    }
++}
++
++fileprivate struct SettingsDivider: View {
++    var body: some View {
++        Divider()
++            .padding(.trailing, -8)
++    }
++}
+diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift
+new file mode 100644
+index 0000000..7bc6159
+--- /dev/null
++++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift	
+@@ -0,0 +1,115 @@
++//
++//  ProfileView.swift
++//  LoopKitUI
++//
++//  Created by Jonas Björkert on 2023-04-22.
++//  Copyright © 2023 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import AVFoundation
++import HealthKit
++import LoopKit
++import SwiftUI
++
++enum ActiveAlert {
++    case load, delete, error
++}
++
++public struct ProfileView: View {
++    @ObservedObject public var viewModel: ProfileViewModel
++    @Environment(\.dismissAction) var dismissAction
++    @State private var newProfileName: String = ""
++    @State private var isAddingNewProfile = false
++    @State private var selectedProfileIndex: Int? = nil
++
++    public init(viewModel: ProfileViewModel) {
++        self.viewModel = viewModel
++    }
++
++    private var dismissButton: some View {
++        Button(action: dismissAction) {
++            Text(LocalizedString("Done", comment: "Text for dismiss button"))
++                .bold()
++        }
++    }
++
++    public var body: some View {
++        ZStack {
++            NavigationView {
++                ConfigurationPageScrollView(
++                    content: {
++                        VStack(alignment: .leading) {
++                            Text("Press '+' to save the current glucose target range, carb ratio, basal rates, and insulin sensitivity settings as a new profile. Tap on a profile to review settings. You can then decide to load or delete the profile.")
++                                .font(.subheadline)
++                                .foregroundColor(.secondary)
++                                .padding([.leading, .trailing])
++                                .fixedSize(horizontal: false, vertical: true) // this allows the text to wrap
++                                .textCase(nil) // keeps the original text casing
++
++                            if !viewModel.profiles.isEmpty {
++                                List {
++                                    ForEach(viewModel.profiles.indices, id: \.self) { index in
++                                        if let profile = try? viewModel.getProfile(from: viewModel.profiles[index]) {
++                                            NavigationLink(destination: ProfilePreviewView(viewModel: viewModel, profile: profile)) {
++                                                Text(viewModel.profiles[index].name)
++                                            }
++                                        }
++                                    }
++                                }.padding(.top, -15)
++                            }
++                        }
++                    },
++                    actionArea: { EmptyView() } // no action area in this case
++                )
++                .navigationBarItems(
++                    leading: Button(action: { withAnimation { isAddingNewProfile = true } }) {
++                        Image(systemName: "plus")
++                    },
++                    trailing: dismissButton
++                )
++                .navigationTitle(Text(LocalizedString("Profiles", comment: "Title on ProfileView")))
++            }
++            .navigationBarHidden(false)
++            .background(Color(.systemGroupedBackground))
++
++            if isAddingNewProfile {
++                DarkenedOverlay()
++
++                NewProfileEditor(
++                    isPresented: $isAddingNewProfile,
++                    newProfileName: newProfileName,
++                    viewModel: viewModel
++                )
++                .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity).animation(.default))
++            }
++        }
++    }
++}
++
++struct ProfileView_Previews: PreviewProvider {
++    static let preview_glucoseScheduleItems = [
++        RepeatingScheduleValue(startTime: 0, value: DoubleRange(80...90)),
++        RepeatingScheduleValue(startTime: 1800, value: DoubleRange(90...100)),
++        RepeatingScheduleValue(startTime: 3600, value: DoubleRange(100...110))
++    ]
++
++    static let preview_therapySettings = TherapySettings(
++        glucoseTargetRangeSchedule: GlucoseRangeSchedule(unit: .milligramsPerDeciliter, dailyItems: preview_glucoseScheduleItems),
++        correctionRangeOverrides: CorrectionRangeOverrides(preMeal: DoubleRange(88...99),
++                                                           workout: DoubleRange(99...111),
++                                                           unit: .milligramsPerDeciliter),
++        maximumBolus: 4,
++        suspendThreshold: GlucoseThreshold.init(unit: .milligramsPerDeciliter, value: 60),
++        insulinSensitivitySchedule: InsulinSensitivitySchedule(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: HKUnit.internationalUnit()), dailyItems: []),
++        carbRatioSchedule: nil,
++        basalRateSchedule: BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: 0, value: 0.2), RepeatingScheduleValue(startTime: 1800, value: 0.75)]))
++
++    static let preview_supportedBasalRates = [0.2, 0.5, 0.75, 1.0]
++    static let preview_supportedBolusVolumes = [1.0, 2.0, 3.0]
++    static let preview_supportedMaximumBolusVolumes = [5.0, 10.0, 15.0]
++
++    static var previews: some View {
++        ProfileView(viewModel: ProfileViewModel(therapySettings: preview_therapySettings))
++    }
++}
