@@ -24,7 +24,7 @@ index 90859273..8959a843 100644
      private var configurationSection: some View {
          Section(header: SectionHeader(label: NSLocalizedString("Configuration", comment: "The title of the Configuration section in settings"))) {
              LargeButton(action: { self.therapySettingsIsPresented = true },
-@@ -173,7 +178,26 @@ extension SettingsView {
+@@ -220,7 +225,26 @@ extension SettingsView {
                          .environment(\.guidanceColors, self.guidanceColors)
                          .environment(\.insulinTintColor, self.insulinTintColor)
              }
