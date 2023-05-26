@@ -545,10 +545,10 @@ index 0000000..4fcbea1
 +}
 diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfilePreviewView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfilePreviewView.swift
 new file mode 100644
-index 0000000..bbcee5c
+index 0000000..c86eb4f
 --- /dev/null
 +++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfilePreviewView.swift	
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,277 @@
 +//
 +//  ProfilePreviewView.swift
 +//  LoopKitUI
@@ -577,7 +577,14 @@ index 0000000..bbcee5c
 +
 +    var body: some View {
 +        ScrollView {
-+            VStack {
++            VStack(alignment: .leading) {
++                Text("Review this profile before choosing to Load or Return to profile screen.")
++                    .font(.subheadline)
++                    .foregroundColor(.secondary)
++                    .padding([.leading, .trailing])
++                    .fixedSize(horizontal: false, vertical: true) // this allows the text to wrap
++                    .textCase(nil) // keeps the original text casing
++
 +                profileCardStack
 +
 +                Button(action: {
@@ -613,7 +620,6 @@ index 0000000..bbcee5c
 +                .padding(.horizontal)
 +
 +            }
-+            .padding()
 +        }
 +        .navigationBarHidden(false)
 +        .background(Color(.systemGroupedBackground))
@@ -766,6 +772,28 @@ index 0000000..bbcee5c
 +    }
 +}
 +
++
++struct SectionWithContent<Content>: View where Content: View {
++    let title: String
++    let content: Content
++
++    init(title: String,
++         content: () -> Content)
++    {
++        self.title = title
++        self.content = content()
++    }
++
++    public var body: some View {
++        Section {
++            Text(title)
++                .bold()
++                .frame(maxWidth: .infinity, alignment: .leading)
++            content
++        }
++    }
++}
++
 +// MARK: Utilities
 +extension ProfilePreviewView {
 +
@@ -779,12 +807,8 @@ index 0000000..bbcee5c
 +
 +    private func card<Content>(for therapySetting: TherapySetting, @ViewBuilder content: @escaping () -> Content) -> Card where Content: View {
 +        Card {
-+            //SectionWithTapToEdit is not optimal here, perhaps we should make a new one
-+            SectionWithTapToEdit(isEnabled: false,
-+                                 title: therapySetting.title,
-+                                 descriptiveText: "",
-+                                 destination: nilDestination,
-+                                 content: content)
++            SectionWithContent(title: therapySetting.title,
++                               content: content)
 +        }
 +    }
 +}
@@ -804,7 +828,7 @@ index 0000000..bbcee5c
 +}
 diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift
 new file mode 100644
-index 0000000..3a46d21
+index 0000000..999bd8e
 --- /dev/null
 +++ b/LoopKit/LoopKitUI/Views/Settings Editors/ProfileView.swift	
 @@ -0,0 +1,115 @@
@@ -850,7 +874,7 @@ index 0000000..3a46d21
 +                ConfigurationPageScrollView(
 +                    content: {
 +                        VStack(alignment: .leading) {
-+                            Text("Press '+' to save the current glucose target range, carb ratio, basal rates, and insulin sensitivity settings as a new profile. Tap on a profile to switch to these settings. Swipe left to remove a profile. Note: other settings are not affected by these profiles.")
++                            Text("Press '+' to save the current glucose target range, carb ratio, basal rates, and insulin sensitivity settings as a new profile. Tap on a profile to review settings. You can then decide to load or delete the profile.")
 +                                .font(.subheadline)
 +                                .foregroundColor(.secondary)
 +                                .padding([.leading, .trailing])
@@ -923,263 +947,3 @@ index 0000000..3a46d21
 +        ProfileView(viewModel: ProfileViewModel(therapySettings: preview_therapySettings))
 +    }
 +}
-diff --git a/LoopKit/LoopKitUI/Views/Settings Editors/TherapySettingsView.swift b/LoopKit/LoopKitUI/Views/Settings Editors/TherapySettingsView.swift
-index 46c9e0c..51c95a6 100644
---- a/LoopKit/LoopKitUI/Views/Settings Editors/TherapySettingsView.swift	
-+++ b/LoopKit/LoopKitUI/Views/Settings Editors/TherapySettingsView.swift	
-@@ -16,7 +16,7 @@ public struct TherapySettingsView: View {
-     @Environment(\.chartColorPalette) var chartColorPalette
-     @Environment(\.dismissAction) var dismissAction
-     @Environment(\.appName) private var appName
--
-+
-     public struct ActionButton {
-         public init(localizedString: String, action: @escaping () -> Void) {
-             self.localizedString = localizedString
-@@ -25,13 +25,13 @@ public struct TherapySettingsView: View {
-         let localizedString: String
-         let action: () -> Void
-     }
--
-+
-     private let mode: SettingsPresentationMode
--
-+
-     @ObservedObject var viewModel: TherapySettingsViewModel
--        
-+
-     private let actionButton: ActionButton?
--
-+
-     public init(mode: SettingsPresentationMode,
-                 viewModel: TherapySettingsViewModel,
-                 actionButton: ActionButton? = nil) {
-@@ -39,7 +39,7 @@ public struct TherapySettingsView: View {
-         self.viewModel = viewModel
-         self.actionButton = actionButton
-     }
--        
-+
-     public var body: some View {
-         switch mode {
-         case .acceptanceFlow:
-@@ -52,21 +52,21 @@ public struct TherapySettingsView: View {
-     private var content: some View {
-         CardList(title: cardListTitle, style: .sectioned(cardListSections), trailer: cardListTrailer)
-     }
--
-+
-     private var cardListTitle: Text? { mode == .acceptanceFlow ? Text(therapySettingsTitle) : nil }
--
-+
-     private var therapySettingsTitle: String {
-         return LocalizedString("Therapy Settings", comment: "Therapy Settings screen title")
-     }
--
-+
-     private var cardListSections: [CardListSection] {
-         var cardListSections: [CardListSection] = []
--
-+
-         cardListSections.append(therapySettingsCardListSection)
-         if mode == .settings {
-             cardListSections.append(supportCardListSection)
-         }
--
-+
-         return cardListSections
-     }
-     
-@@ -76,10 +76,10 @@ public struct TherapySettingsView: View {
-                 .spacing(20)
-         }
-     }
--
-+
-     private var therapySettingsCardStack: CardStack {
-         var cards: [Card] = []
--
-+
-         if mode == .acceptanceFlow {
-             if viewModel.prescription != nil {
-                 cards.append(prescriptionSection)
-@@ -100,7 +100,7 @@ public struct TherapySettingsView: View {
-             cards.append(insulinModelSection)
-         }
-         cards.append(insulinSensitivitiesSection)
--
-+
-         return CardStack(cards: cards)
-     }
-     
-@@ -109,7 +109,7 @@ public struct TherapySettingsView: View {
-             supportSection
-         }
-     }
--
-+
-     private var navigationViewWrappedContent: some View {
-         NavigationView {
-             ZStack {
-@@ -198,7 +198,7 @@ extension TherapySettingsView {
-                       prescription.providerName,
-                       DateFormatter.localizedString(from: prescription.datePrescribed, dateStyle: .short, timeStyle: .none))
-     }
--
-+
-     private var suspendThresholdSection: Card {
-         card(for: .suspendThreshold) {
-             SectionDivider()
-@@ -215,7 +215,7 @@ extension TherapySettingsView {
-             }
-         }
-     }
--
-+
-     private var correctionRangeSection: Card {
-         card(for: .glucoseTargetRange) {
-             if let items = self.viewModel.glucoseTargetRangeSchedule(for: glucoseUnit)?.items
-@@ -267,7 +267,7 @@ extension TherapySettingsView {
-             }
-         }
-     }
--
-+
-     private var basalRatesSection: Card {
-         card(for: .basalRate) {
-             if let schedule = viewModel.therapySettings.basalRateSchedule,
-@@ -347,7 +347,7 @@ extension TherapySettingsView {
-         }
-         .accessibilityElement(children: .combine)
-     }
--        
-+
-     private var insulinModelSection: Card {
-         card(for: .insulinModel) {
-             if let insulinModelPreset = self.viewModel.therapySettings.defaultRapidActingModel {
-@@ -374,7 +374,7 @@ extension TherapySettingsView {
-             }
-         }
-     }
--
-+
-     private var carbRatioSection: Card {
-         card(for: .carbRatio) {
-             if let items = viewModel.therapySettings.carbRatioSchedule?.items {
-@@ -427,7 +427,7 @@ extension TherapySettingsView {
- // MARK: Navigation
- 
- extension TherapySettingsView {
--
-+
-     func screen(for setting: TherapySetting) -> (_ dismiss: @escaping () -> Void) -> AnyView {
-         switch setting {
-         case .suspendThreshold:
-@@ -507,9 +507,9 @@ struct ScheduleRangeItem: View {
-         ScheduleItemView(time: time,
-                          isEditing: .constant(false),
-                          valueContent: {
--                            GuardrailConstrainedQuantityRangeView(range: range.quantityRange(for: unit), unit: unit, guardrail: guardrail, isEditing: false)
--                                .padding(.leading, 10)
--                         },
-+            GuardrailConstrainedQuantityRangeView(range: range.quantityRange(for: unit), unit: unit, guardrail: guardrail, isEditing: false)
-+                .padding(.leading, 10)
-+        },
-                          expandedContent: { EmptyView() })
-     }
- }
-@@ -524,9 +524,9 @@ struct ScheduleValueItem: View {
-         ScheduleItemView(time: time,
-                          isEditing: .constant(false),
-                          valueContent: {
--                            GuardrailConstrainedQuantityView(value: HKQuantity(unit: unit, doubleValue: value), unit: unit, guardrail: guardrail, isEditing: false)
--                                .padding(.leading, 10)
--                         },
-+            GuardrailConstrainedQuantityView(value: HKQuantity(unit: unit, doubleValue: value), unit: unit, guardrail: guardrail, isEditing: false)
-+                .padding(.leading, 10)
-+        },
-                          expandedContent: { EmptyView() })
-     }
- }
-@@ -556,9 +556,9 @@ struct SectionWithTapToEdit<Content, NavigationDestination>: View where Content:
-     let descriptiveText: String
-     let destination: (_ goBack: @escaping () -> Void) -> NavigationDestination
-     let content: Content
--
-+
-     @State var isActive: Bool = false
--
-+
-     init(isEnabled: Bool,
-          title: String,
-          descriptiveText: String,
-@@ -571,7 +571,7 @@ struct SectionWithTapToEdit<Content, NavigationDestination>: View where Content:
-         self.destination = destination
-         self.content = content()
-     }
--
-+
-     private func onFinish() {
-         // Dispatching here fixes an issue on iOS 14.2 where schedule editors do not dismiss. It does not fix iOS 14.0 and 14.1
-         // Added a delay, since recently a similar issue was encountered in a plugin where a delay was also needed. Still uncertain why.
-@@ -579,7 +579,7 @@ struct SectionWithTapToEdit<Content, NavigationDestination>: View where Content:
-             self.isActive = false
-         }
-     }
--
-+
-     public var body: some View {
-         Section {
-             VStack(alignment: .leading) {
-@@ -606,20 +606,20 @@ struct SectionWithTapToEdit<Content, NavigationDestination>: View where Content:
-             TapGesture()
-                 .onEnded { _ in
-                     self.isActive = true
--        })
-+                })
-     }
- }
- 
- // MARK: Previews
- 
- public struct TherapySettingsView_Previews: PreviewProvider {
--
-+
-     static let preview_glucoseScheduleItems = [
-         RepeatingScheduleValue(startTime: 0, value: DoubleRange(80...90)),
-         RepeatingScheduleValue(startTime: 1800, value: DoubleRange(90...100)),
-         RepeatingScheduleValue(startTime: 3600, value: DoubleRange(100...110))
-     ]
--
-+
-     static let preview_therapySettings = TherapySettings(
-         glucoseTargetRangeSchedule: GlucoseRangeSchedule(unit: .milligramsPerDeciliter, dailyItems: preview_glucoseScheduleItems),
-         correctionRangeOverrides: CorrectionRangeOverrides(preMeal: DoubleRange(88...99),
-@@ -630,20 +630,20 @@ public struct TherapySettingsView_Previews: PreviewProvider {
-         insulinSensitivitySchedule: InsulinSensitivitySchedule(unit: HKUnit.milligramsPerDeciliter.unitDivided(by: HKUnit.internationalUnit()), dailyItems: []),
-         carbRatioSchedule: nil,
-         basalRateSchedule: BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: 0, value: 0.2), RepeatingScheduleValue(startTime: 1800, value: 0.75)]))
--
-+
-     static let preview_supportedBasalRates = [0.2, 0.5, 0.75, 1.0]
-     static let preview_supportedBolusVolumes = [1.0, 2.0, 3.0]
-     static let preview_supportedMaximumBolusVolumes = [5.0, 10.0, 15.0]
--
-+
-     static func preview_viewModel() -> TherapySettingsViewModel {
-         TherapySettingsViewModel(therapySettings: preview_therapySettings,
-                                  pumpSupportedIncrements: {
--                                    PumpSupportedIncrements(basalRates: preview_supportedBasalRates,
--                                                            bolusVolumes: preview_supportedBolusVolumes,
--                                                            maximumBolusVolumes: preview_supportedMaximumBolusVolumes,
--                                                            maximumBasalScheduleEntryCount: 24) })
-+            PumpSupportedIncrements(basalRates: preview_supportedBasalRates,
-+                                    bolusVolumes: preview_supportedBolusVolumes,
-+                                    maximumBolusVolumes: preview_supportedMaximumBolusVolumes,
-+                                    maximumBasalScheduleEntryCount: 24) })
-     }
--
-+
-     public static var previews: some View {
-         Group {
-             TherapySettingsView(mode: .acceptanceFlow, viewModel: preview_viewModel())
