@@ -1,5 +1,6 @@
 # Loop patches
-These patches are intended for Loop 3.0 or 3.2, with or without loop n learn patches.
+These patches are intended for Loop 3.0 or 3.2, with or without loop n learn patches.  
+If you are missing a patch here, head over to LnL since some has been moved there.
 
 ## How to apply a patch when building with Xcode:
 First, download Loop by using the loop and learn build script described here: https://www.loopandlearn.org/build-select/
@@ -23,15 +24,6 @@ Make sure "- name: Customize Loop..." is not already in the file, in that case r
 
 ## Manual Bolus Threshold
 This patch provides a separate suspend threshold for meal and manual bolusing at 54 mg/dL (3 mmol/L), which can be easily modified after applying the patch.
-&nbsp;
-## Omnipod Dash Site Change
-When replacing a pod, this patch ensures that Loop updates Nightscout with a 'Pump Site Change'-treatment, resulting in an updated 'CAGE'-pill and pod change reminder in Loop Follow. Please note that this will happen on the next pod change after the patch is applied, and the date of current pod will not be updated.
-&nbsp;
-## Dexcom G6+G7 - Sensor Change
-When replacing a sensor, this patch ensures that Loop updates Nightscout with a 'Sensor Change' treatment, resulting in an updated 'SAGE' pill and a sensor change reminder in Loop Follow. Please note that the start date of the current sensor will be populated.
-&nbsp;
-## Dexcom G6+G7 - Upload Readings
-This patch automatically sets the 'Upload readings' option to 'On' by default when changing the transmitter. This change addresses the common issue of users forgetting to change the setting, resulting in no blood sugar values being sent to Nightscout.
 &nbsp;
 ## View PreMeal in Nightscout
 Due to overrides now being combinable with PreMeal, PreMeal is no longer sent as an override to Nightscout, leaving Nightscout without any indication that PreMeal is active. This patch addresses this issue by sending a Temporary target to Nightscout when PreMeal is turned on, resulting in a visual band in Nightscout to indicate that PreMeal is active. When PreMeal is turned off, the temporary target band is also ended.
@@ -88,20 +80,6 @@ I described it in this issue, resulted in some modifications but not the blue li
 ## Protein line -90 minutes
 An additional line is added to the graph 90 minutes prior to the current time to indicate if a meal is causing a blood sugar rise 90 minutes later, which may be due to protein that typically takes about 90 minutes to show its effects.
 &nbsp;
-## Duplicate blood glucose entries
-Loop 3 may upload duplicate svg entries, which can cause issues with LoopFollow's graphs and statistics. This issue may also arise when both bridge is enabled in Nightscout and Loop 'upload readings' are used. This patch resolves the issue by filtering out one reading every five minutes. I have submitted a pull request for this fix, which can be found at https://github.com/jonfawcett/LoopFollow/pull/178.
-&nbsp;
-## Carbs Today
-This patch adds a new item to the 'Information Table' called 'Carbs Today.' This feature provides a sum of all registered carbs since midnight to help you keep track of your child's carb intake for the day. However, please note that this feature may not be useful if you are using fake carbs.
-&nbsp;
 ## PreMeal
 The graph displays the PreMeal period as an orange band located below the green override band.
 &nbsp;
-## Speak BG
-The Speak BG functionality had been experiencing issues for a while, but it has now returned, more powerful than ever. Not only will it announce the present BG value, but it will also provide the difference between the current reading and the previous one.
-&nbsp;
-## Home Screen Quick Action for Speak BG
-Now you can easily toggle the "Speak BG" feature on and off directly from your home screen! I've added a Home Screen Quick Action that lets you control the feature with just a 3D touch on the LoopFollow app icon.
-- **Home Screen Quick Action**: Quickly toggle "Speak BG" without going through the settings screens.
-- **Synced Settings**: The switch in General Settings and the Quick Action are in sync.
-- **Audible Confirmation**: Get instant feedback when you toggle the feature using the Quick Action.

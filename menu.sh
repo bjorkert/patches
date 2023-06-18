@@ -134,9 +134,6 @@ if [ $(basename $PWD) = "LoopWorkspace" ]; then
     folder=()
 
     add_patch "Manual bolus threshold" "manualBolusThreshold" "Loop"
-    add_patch "Omnipod Dash Site Change" "siteChange" "OmniBLE"
-    add_patch "Dexcom G6+G7 - Sensor change" "g6g7_sage" ""
-    add_patch "Dexcom G6+G7 - Upload Readings" "g6g7_upload_readings" ""
     add_patch "View PreMeal in Nightscout" "preMeal" "Loop"
     add_patch "Future carbs 90 minutes" "90m" "Loop"
     add_patch "Required carbs" "updateRequiredCarbs" ""
