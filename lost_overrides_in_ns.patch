@@ -1,0 +1,14 @@
+Submodule NightscoutService contains modified content
+diff --git a/NightscoutService/NightscoutServiceKit/NightscoutService.swift b/NightscoutService/NightscoutServiceKit/NightscoutService.swift
+index 1adb9cf..a175da2 100644
+--- a/NightscoutService/NightscoutServiceKit/NightscoutService.swift
++++ b/NightscoutService/NightscoutServiceKit/NightscoutService.swift
+@@ -153,7 +153,7 @@ extension NightscoutService: RemoteDataService {
+ 
+         let updates = updated.map { OverrideTreatment(override: $0) }
+ 
+-        let deletions = deleted.map { $0.syncIdentifier.uuidString }
++        let deletions: [String] = []
+ 
+         uploader.deleteTreatmentsById(deletions, completionHandler: { (error) in
+             if let error = error {
