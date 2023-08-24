@@ -1,0 +1,225 @@
+From 62255047649573d0b3d40865ef341d93f4d35c35 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jonas=20Bj=C3=B6rkert?= <jonas@bjorkert.se>
+Date: Thu, 24 Aug 2023 15:46:03 +0200
+Subject: [PATCH] x
+
+---
+ Loop.xcodeproj/project.pbxproj                |  8 +--
+ ...erter.swift => AppExpirationAlerter.swift} | 51 ++++++++++++++---
+ Loop/Managers/LoopAppManager.swift            |  2 +-
+ Loop/Views/SettingsView.swift                 | 57 +++++++++++++------
+ 4 files changed, 90 insertions(+), 28 deletions(-)
+ rename Loop/Managers/{ProfileExpirationAlerter.swift => AppExpirationAlerter.swift} (69%)
+
+diff --git a/Loop.xcodeproj/project.pbxproj b/Loop.xcodeproj/project.pbxproj
+index aaa0a470..ecba1c2d 100644
+--- a/Loop.xcodeproj/project.pbxproj
++++ b/Loop.xcodeproj/project.pbxproj
+@@ -479,7 +479,7 @@
+ 		C1EF747228D6A44A00C8C083 /* CrashRecoveryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1EF747128D6A44A00C8C083 /* CrashRecoveryManager.swift */; };
+ 		C1F00C60285A802A006302C5 /* SwiftCharts in Frameworks */ = {isa = PBXBuildFile; productRef = C1F00C5F285A802A006302C5 /* SwiftCharts */; };
+ 		C1F00C78285A8256006302C5 /* SwiftCharts in Embed Frameworks */ = {isa = PBXBuildFile; productRef = C1F00C5F285A802A006302C5 /* SwiftCharts */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+-		C1F2075C26D6F9B0007AB7EB /* ProfileExpirationAlerter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F2075B26D6F9B0007AB7EB /* ProfileExpirationAlerter.swift */; };
++		C1F2075C26D6F9B0007AB7EB /* AppExpirationAlerter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F2075B26D6F9B0007AB7EB /* AppExpirationAlerter.swift */; };
+ 		C1F7822627CC056900C0919A /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F7822527CC056900C0919A /* SettingsManager.swift */; };
+ 		C1F8B243223E73FD00DD66CF /* BolusProgressTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F8B1D122375E4200DD66CF /* BolusProgressTableViewCell.swift */; };
+ 		C1FB428C217806A400FAB378 /* StateColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FB428B217806A300FAB378 /* StateColorPalette.swift */; };
+@@ -1565,7 +1565,7 @@
+ 		C1EB0D22299581D900628475 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/ckcomplication.strings; sourceTree = "<group>"; };
+ 		C1EE9E802A38D0FB0064784A /* BuildDetails.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = BuildDetails.plist; sourceTree = "<group>"; };
+ 		C1EF747128D6A44A00C8C083 /* CrashRecoveryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashRecoveryManager.swift; sourceTree = "<group>"; };
+-		C1F2075B26D6F9B0007AB7EB /* ProfileExpirationAlerter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileExpirationAlerter.swift; sourceTree = "<group>"; };
++		C1F2075B26D6F9B0007AB7EB /* AppExpirationAlerter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExpirationAlerter.swift; sourceTree = "<group>"; };
+ 		C1F48FF62995821600C8BD69 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+ 		C1F48FF72995821600C8BD69 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+ 		C1F48FF82995821600C8BD69 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
+@@ -2307,7 +2307,7 @@
+ 				1DA6499D2441266400F61E75 /* Alerts */,
+ 				E95D37FF24EADE68005E2F50 /* Store Protocols */,
+ 				E9B355232935906B0076AB04 /* Missed Meal Detection */,
+-				C1F2075B26D6F9B0007AB7EB /* ProfileExpirationAlerter.swift */,
++				C1F2075B26D6F9B0007AB7EB /* AppExpirationAlerter.swift */,
+ 				A96DAC2B2838F31200D94E38 /* SharedLogging.swift */,
+ 				7E69CFFB2A16A77E00203CBD /* ResetLoopManager.swift */,
+ 				84AA81E42A4A3981000B658B /* DeeplinkManager.swift */,
+@@ -3654,7 +3654,7 @@
+ 				C1D289B522F90A52003FFBD9 /* BasalDeliveryState.swift in Sources */,
+ 				4F2C15821E074FC600E160D4 /* NSTimeInterval.swift in Sources */,
+ 				4311FB9B1F37FE1B00D4C0A7 /* TitleSubtitleTextFieldTableViewCell.swift in Sources */,
+-				C1F2075C26D6F9B0007AB7EB /* ProfileExpirationAlerter.swift in Sources */,
++				C1F2075C26D6F9B0007AB7EB /* AppExpirationAlerter.swift in Sources */,
+ 				B4FEEF7D24B8A71F00A8DF9B /* DeviceDataManager+DeviceStatus.swift in Sources */,
+ 				142CB7592A60BF2E0075748A /* EditMode.swift in Sources */,
+ 				E95D380324EADF36005E2F50 /* CarbStoreProtocol.swift in Sources */,
+diff --git a/Loop/Managers/ProfileExpirationAlerter.swift b/Loop/Managers/AppExpirationAlerter.swift
+similarity index 69%
+rename from Loop/Managers/ProfileExpirationAlerter.swift
+rename to Loop/Managers/AppExpirationAlerter.swift
+index 3aa74273..41451877 100644
+--- a/Loop/Managers/ProfileExpirationAlerter.swift
++++ b/Loop/Managers/AppExpirationAlerter.swift
+@@ -1,5 +1,5 @@
+ //
+-//  ProfileExpirationAlerter.swift
++//  AppExpirationAlerter.swift
+ //  Loop
+ //
+ //  Created by Pete Schwamb on 8/21/21.
+@@ -11,7 +11,7 @@ import UserNotifications
+ import LoopCore
+ 
+ 
+-class ProfileExpirationAlerter {
++class AppExpirationAlerter {
+     
+     static let expirationAlertWindow: TimeInterval = .days(20)
+     static let settingsPageExpirationWarningModeWindow: TimeInterval = .days(3)
+@@ -60,14 +60,14 @@ class ProfileExpirationAlerter {
+         return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to update before that, with a new provisioning profile.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
+     }
+     
+-    static func isNearProfileExpiration(profileExpiration:Date) -> Bool {
+-        return profileExpiration.timeIntervalSinceNow < settingsPageExpirationWarningModeWindow
++    static func isNearExpiration(expirationDate:Date) -> Bool {
++        return expirationDate.timeIntervalSinceNow < settingsPageExpirationWarningModeWindow
+     }
+     
+-    static func createProfileExpirationSettingsMessage(profileExpiration:Date) -> String {
+-        let nearExpiration = isNearProfileExpiration(profileExpiration: profileExpiration)
++    static func createProfileExpirationSettingsMessage(expirationDate:Date) -> String {
++        let nearExpiration = isNearExpiration(expirationDate: expirationDate)
+         let maxUnitCount = nearExpiration ? 2 : 1 // only include hours in the msg if near expiration
+-        let readableRelativeTime: String? = relativeTimeFormatter(maxUnitCount: maxUnitCount).string(from: profileExpiration.timeIntervalSinceNow)
++        let readableRelativeTime: String? = relativeTimeFormatter(maxUnitCount: maxUnitCount).string(from: expirationDate.timeIntervalSinceNow)
+         let relativeTimeRemaining: String = readableRelativeTime ?? NSLocalizedString("Unknown time", comment: "Unknown amount of time in settings' profile expiration section")
+         let verboseMessage = createVerboseAlertMessage(timeUntilExpirationStr: relativeTimeRemaining)
+         let conciseMessage = relativeTimeRemaining + NSLocalizedString(" remaining", comment: "remaining time in setting's profile expiration section")
+@@ -83,4 +83,41 @@ class ProfileExpirationAlerter {
+         formatter.maximumUnitCount = maxUnitCount
+         return formatter;
+     }
++    
++    static func buildDate() -> Date? {
++        let dateFormatter = DateFormatter()
++        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
++        
++        guard let dateString = BuildDetails.default.buildDateString,
++              let date = dateFormatter.date(from: dateString) else {
++            return nil
++        }
++        
++        return date
++    }
++    
++    static func isTestFlightBuild() -> Bool {
++        if let receiptURL = Bundle.main.appStoreReceiptURL,
++           let receiptData = try? Data(contentsOf: receiptURL) {
++            
++            let receiptString = receiptData.base64EncodedString(options: [])
++            
++            if receiptString.contains("TestFlight") {
++                return true
++            }
++        }
++        return false
++    }
++    
++    static func calculateExpirationDate(profileExpiration: Date) -> Date {
++        let isTestFlight = isTestFlightBuild()
++        
++        guard isTestFlight, let buildDate = buildDate() else {
++            return profileExpiration
++        }
++        
++        let testflightExpiration = Calendar.current.date(byAdding: .day, value: 90, to: buildDate)!
++        
++        return profileExpiration < testflightExpiration ? profileExpiration : testflightExpiration
++    }
+ }
+diff --git a/Loop/Managers/LoopAppManager.swift b/Loop/Managers/LoopAppManager.swift
+index 43c62d12..9edf481b 100644
+--- a/Loop/Managers/LoopAppManager.swift
++++ b/Loop/Managers/LoopAppManager.swift
+@@ -323,7 +323,7 @@ class LoopAppManager: NSObject {
+ 
+     func didBecomeActive() {
+         if let rootViewController = rootViewController {
+-            ProfileExpirationAlerter.alertIfNeeded(viewControllerToPresentFrom: rootViewController)
++            AppExpirationAlerter.alertIfNeeded(viewControllerToPresentFrom: rootViewController)
+         }
+         settingsManager?.didBecomeActive()
+         deviceDataManager?.didBecomeActive()
+diff --git a/Loop/Views/SettingsView.swift b/Loop/Views/SettingsView.swift
+index 0b4cb551..ff465413 100644
+--- a/Loop/Views/SettingsView.swift
++++ b/Loop/Views/SettingsView.swift
+@@ -417,25 +417,50 @@ extension SettingsView {
+      DIY loop specific component to show users the amount of time remaining on their build before a rebuild is necessary.
+      */
+     private func profileExpirationSection(profileExpiration:Date) -> some View {
+-        let nearExpiration : Bool = ProfileExpirationAlerter.isNearProfileExpiration(profileExpiration: profileExpiration)
+-        let profileExpirationMsg = ProfileExpirationAlerter.createProfileExpirationSettingsMessage(profileExpiration: profileExpiration)
+-        let readableExpirationTime = Self.dateFormatter.string(from: profileExpiration)
++        let expirationDate = AppExpirationAlerter.calculateExpirationDate(profileExpiration: profileExpiration)
++        let isTestFlight = AppExpirationAlerter.isTestFlightBuild()
+         
+-        return Section(header: SectionHeader(label: NSLocalizedString("App Profile", comment: "Settings app profile section")),
+-                       footer: Text(NSLocalizedString("Profile expires ", comment: "Time that profile expires") + readableExpirationTime)) {
+-            if(nearExpiration) {
+-                Text(profileExpirationMsg).foregroundColor(.red)
+-            } else {
+-                HStack {
+-                    Text("Profile Expiration", comment: "Settings App Profile expiration view")
+-                    Spacer()
+-                    Text(profileExpirationMsg).foregroundColor(Color.secondary)
++        let nearExpiration : Bool = AppExpirationAlerter.isNearExpiration(expirationDate: expirationDate)
++        let profileExpirationMsg = AppExpirationAlerter.createProfileExpirationSettingsMessage(expirationDate: expirationDate)
++        let readableExpirationTime = Self.dateFormatter.string(from: expirationDate)
++        
++        if isTestFlight {
++            return Section(header: SectionHeader(label: NSLocalizedString("TestFlight", comment: "Settings app TestFlight section")),
++                           footer: Text(NSLocalizedString("TestFlight expires ", comment: "Time that build expires") + readableExpirationTime)) {
++                if(nearExpiration) {
++                    Text(profileExpirationMsg).foregroundColor(.red)
++                } else {
++                    HStack {
++                        Text("TestFlight Expiration", comment: "Settings TestFlight expiration view")
++                        Spacer()
++                        Text(profileExpirationMsg).foregroundColor(Color.secondary)
++                    }
++                }
++                Button(action: {
++                    UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/gh-actions/gh-update/")!)
++                }) {
++                    Text(NSLocalizedString("How to update (LoopDocs)", comment: "The title text for how to update"))
+                 }
+             }
+-            Button(action: {
+-                UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/build/updating/")!)
+-            }) {
+-                Text(NSLocalizedString("How to update (LoopDocs)", comment: "The title text for how to update"))
++        }
++        else
++        {
++            return Section(header: SectionHeader(label: NSLocalizedString("App Profile", comment: "Settings app profile section")),
++                           footer: Text(NSLocalizedString("Profile expires ", comment: "Time that profile expires") + readableExpirationTime)) {
++                if(nearExpiration) {
++                    Text(profileExpirationMsg).foregroundColor(.red)
++                } else {
++                    HStack {
++                        Text("Profile Expiration", comment: "Settings App Profile expiration view")
++                        Spacer()
++                        Text(profileExpirationMsg).foregroundColor(Color.secondary)
++                    }
++                }
++                Button(action: {
++                    UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/build/updating/")!)
++                }) {
++                    Text(NSLocalizedString("How to update (LoopDocs)", comment: "The title text for how to update"))
++                }
+             }
+         }
+     }
+-- 
+2.41.0
+
