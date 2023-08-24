@@ -1,4 +1,4 @@
-Submodule Loop contains modified content
+Submodule Loop dc5316c..6225504:
 diff --git a/Loop/Loop.xcodeproj/project.pbxproj b/Loop/Loop.xcodeproj/project.pbxproj
 index aaa0a470..ecba1c2d 100644
 --- a/Loop/Loop.xcodeproj/project.pbxproj
