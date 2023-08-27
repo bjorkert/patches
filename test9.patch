@@ -52,53 +52,112 @@ index aaa0a470..ecba1c2d 100644
  				B4FEEF7D24B8A71F00A8DF9B /* DeviceDataManager+DeviceStatus.swift in Sources */,
  				142CB7592A60BF2E0075748A /* EditMode.swift in Sources */,
  				E95D380324EADF36005E2F50 /* CarbStoreProtocol.swift in Sources */,
-diff --git a/Loop/Managers/ProfileExpirationAlerter.swift b/Loop/Managers/AppExpirationAlerter.swift
-similarity index 72%
-rename from Loop/Managers/ProfileExpirationAlerter.swift
-rename to Loop/Managers/AppExpirationAlerter.swift
-index 3aa74273..b8c99d24 100644
---- a/Loop/Managers/ProfileExpirationAlerter.swift
+diff --git a/Loop/Managers/AppExpirationAlerter.swift b/Loop/Managers/AppExpirationAlerter.swift
+new file mode 100644
+index 00000000..a8199bbf
+--- /dev/null
 +++ b/Loop/Managers/AppExpirationAlerter.swift
-@@ -1,5 +1,5 @@
- //
--//  ProfileExpirationAlerter.swift
+@@ -0,0 +1,130 @@
++//
 +//  AppExpirationAlerter.swift
- //  Loop
- //
- //  Created by Pete Schwamb on 8/21/21.
-@@ -11,7 +11,7 @@ import UserNotifications
- import LoopCore
- 
- 
--class ProfileExpirationAlerter {
++//  Loop
++//
++//  Created by Pete Schwamb on 8/21/21.
++//  Copyright © 2021 LoopKit Authors. All rights reserved.
++//
++
++import Foundation
++import UserNotifications
++import LoopCore
++
++
 +class AppExpirationAlerter {
-     
-     static let expirationAlertWindow: TimeInterval = .days(20)
-     static let settingsPageExpirationWarningModeWindow: TimeInterval = .days(3)
-@@ -60,14 +60,14 @@ class ProfileExpirationAlerter {
-         return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to update before that, with a new provisioning profile.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
-     }
-     
--    static func isNearProfileExpiration(profileExpiration:Date) -> Bool {
--        return profileExpiration.timeIntervalSinceNow < settingsPageExpirationWarningModeWindow
++    
++    static let expirationAlertWindow: TimeInterval = .days(20)
++    static let settingsPageExpirationWarningModeWindow: TimeInterval = .days(3)
++
++    static func alertIfNeeded(viewControllerToPresentFrom: UIViewController) {
++        
++        let now = Date()
++        
++        guard let profileExpiration = BuildDetails.default.profileExpiration, now > profileExpiration - expirationAlertWindow else {
++            return
++        }
++        
++        let expirationDate = calculateExpirationDate(profileExpiration: profileExpiration)
++        
++        let timeUntilExpiration = expirationDate.timeIntervalSince(now)
++        
++        let minimumTimeBetweenAlerts: TimeInterval = timeUntilExpiration > .hours(24) ? .days(2) : .hours(1)
++        
++        if let lastAlertDate = UserDefaults.appGroup?.lastProfileExpirationAlertDate {
++            guard now > lastAlertDate + minimumTimeBetweenAlerts else {
++                return
++            }
++        }
++        
++        let formatter = DateComponentsFormatter()
++        formatter.allowedUnits = [.day, .hour]
++        formatter.unitsStyle = .full
++        formatter.zeroFormattingBehavior = .dropLeading
++        formatter.maximumUnitCount = 1
++        let timeUntilExpirationStr = formatter.string(from: timeUntilExpiration)
++        
++        let alertMessage = createVerboseAlertMessage(timeUntilExpirationStr: timeUntilExpirationStr!)
++        
++        var dialog: UIAlertController
++        if isTestFlightBuild() {
++            dialog = UIAlertController(
++                title: NSLocalizedString("TestFlight Expires Soon", comment: "The title for notification of upcoming TestFlight expiration"),
++                message: alertMessage,
++                preferredStyle: .alert)
++            dialog.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Text for ok action on notification of upcoming profile expiration"), style: .default, handler: nil))
++            dialog.addAction(UIAlertAction(title: NSLocalizedString("More Info", comment: "Text for more info action on notification of upcoming TestFlight expiration"), style: .default, handler: { (_) in
++                UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/gh-actions/gh-update/")!)
++            }))
++
++        } else {
++            dialog = UIAlertController(
++                title: NSLocalizedString("Profile Expires Soon", comment: "The title for notification of upcoming profile expiration"),
++                message: alertMessage,
++                preferredStyle: .alert)
++            dialog.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Text for ok action on notification of upcoming profile expiration"), style: .default, handler: nil))
++            dialog.addAction(UIAlertAction(title: NSLocalizedString("More Info", comment: "Text for more info action on notification of upcoming profile expiration"), style: .default, handler: { (_) in
++                UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/build/updating/")!)
++            }))
++        }
++        viewControllerToPresentFrom.present(dialog, animated: true, completion: nil)
++        
++        UserDefaults.appGroup?.lastProfileExpirationAlertDate = now
++    }
++    
++    static func createVerboseAlertMessage(timeUntilExpirationStr:String) -> String {
++        return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to update before that, with a new provisioning profile.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
++    }
++    
 +    static func isNearExpiration(expirationDate:Date) -> Bool {
 +        return expirationDate.timeIntervalSinceNow < settingsPageExpirationWarningModeWindow
-     }
-     
--    static func createProfileExpirationSettingsMessage(profileExpiration:Date) -> String {
--        let nearExpiration = isNearProfileExpiration(profileExpiration: profileExpiration)
++    }
++    
 +    static func createProfileExpirationSettingsMessage(expirationDate:Date) -> String {
 +        let nearExpiration = isNearExpiration(expirationDate: expirationDate)
-         let maxUnitCount = nearExpiration ? 2 : 1 // only include hours in the msg if near expiration
--        let readableRelativeTime: String? = relativeTimeFormatter(maxUnitCount: maxUnitCount).string(from: profileExpiration.timeIntervalSinceNow)
++        let maxUnitCount = nearExpiration ? 2 : 1 // only include hours in the msg if near expiration
 +        let readableRelativeTime: String? = relativeTimeFormatter(maxUnitCount: maxUnitCount).string(from: expirationDate.timeIntervalSinceNow)
-         let relativeTimeRemaining: String = readableRelativeTime ?? NSLocalizedString("Unknown time", comment: "Unknown amount of time in settings' profile expiration section")
-         let verboseMessage = createVerboseAlertMessage(timeUntilExpirationStr: relativeTimeRemaining)
-         let conciseMessage = relativeTimeRemaining + NSLocalizedString(" remaining", comment: "remaining time in setting's profile expiration section")
-@@ -83,4 +83,33 @@ class ProfileExpirationAlerter {
-         formatter.maximumUnitCount = maxUnitCount
-         return formatter;
-     }
++        let relativeTimeRemaining: String = readableRelativeTime ?? NSLocalizedString("Unknown time", comment: "Unknown amount of time in settings' profile expiration section")
++        let verboseMessage = createVerboseAlertMessage(timeUntilExpirationStr: relativeTimeRemaining)
++        let conciseMessage = relativeTimeRemaining + NSLocalizedString(" remaining", comment: "remaining time in setting's profile expiration section")
++        return nearExpiration ? verboseMessage : conciseMessage
++    }
++    
++    private static func relativeTimeFormatter(maxUnitCount:Int) -> DateComponentsFormatter {
++        let formatter = DateComponentsFormatter()
++        let includeHours = maxUnitCount == 2
++        formatter.allowedUnits = includeHours ? [.day, .hour] :  [.day]
++        formatter.unitsStyle = .full
++        formatter.zeroFormattingBehavior = .dropLeading
++        formatter.maximumUnitCount = maxUnitCount
++        return formatter;
++    }
 +    
 +    static func buildDate() -> Date? {
 +        let dateFormatter = DateFormatter()
@@ -128,7 +187,7 @@ index 3aa74273..b8c99d24 100644
 +            return profileExpiration
 +        }
 +    }
- }
++}
 diff --git a/Loop/Managers/LoopAppManager.swift b/Loop/Managers/LoopAppManager.swift
 index 43c62d12..9edf481b 100644
 --- a/Loop/Managers/LoopAppManager.swift
@@ -142,11 +201,103 @@ index 43c62d12..9edf481b 100644
          }
          settingsManager?.didBecomeActive()
          deviceDataManager?.didBecomeActive()
+diff --git a/Loop/Managers/ProfileExpirationAlerter.swift b/Loop/Managers/ProfileExpirationAlerter.swift
+deleted file mode 100644
+index 3aa74273..00000000
+--- a/Loop/Managers/ProfileExpirationAlerter.swift
++++ /dev/null
+@@ -1,86 +0,0 @@
+-//
+-//  ProfileExpirationAlerter.swift
+-//  Loop
+-//
+-//  Created by Pete Schwamb on 8/21/21.
+-//  Copyright © 2021 LoopKit Authors. All rights reserved.
+-//
+-
+-import Foundation
+-import UserNotifications
+-import LoopCore
+-
+-
+-class ProfileExpirationAlerter {
+-    
+-    static let expirationAlertWindow: TimeInterval = .days(20)
+-    static let settingsPageExpirationWarningModeWindow: TimeInterval = .days(3)
+-
+-    static func alertIfNeeded(viewControllerToPresentFrom: UIViewController) {
+-        
+-        let now = Date()
+-        
+-        guard let profileExpiration = BuildDetails.default.profileExpiration, now > profileExpiration - expirationAlertWindow else {
+-            return
+-        }
+-        
+-        let timeUntilExpiration = profileExpiration.timeIntervalSince(now)
+-        
+-        let minimumTimeBetweenAlerts: TimeInterval = timeUntilExpiration > .hours(24) ? .days(2) : .hours(1)
+-        
+-        if let lastAlertDate = UserDefaults.appGroup?.lastProfileExpirationAlertDate {
+-            guard now > lastAlertDate + minimumTimeBetweenAlerts else {
+-                return
+-            }
+-        }
+-        
+-        let formatter = DateComponentsFormatter()
+-        formatter.allowedUnits = [.day, .hour]
+-        formatter.unitsStyle = .full
+-        formatter.zeroFormattingBehavior = .dropLeading
+-        formatter.maximumUnitCount = 1
+-        let timeUntilExpirationStr = formatter.string(from: timeUntilExpiration)
+-        
+-        let alertMessage = createVerboseAlertMessage(timeUntilExpirationStr: timeUntilExpirationStr!)
+-        
+-        let dialog = UIAlertController(
+-            title: NSLocalizedString("Profile Expires Soon", comment: "The title for notification of upcoming profile expiration"),
+-            message: alertMessage,
+-            preferredStyle: .alert)
+-        dialog.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Text for ok action on notification of upcoming profile expiration"), style: .default, handler: nil))
+-        dialog.addAction(UIAlertAction(title: NSLocalizedString("More Info", comment: "Text for more info action on notification of upcoming profile expiration"), style: .default, handler: { (_) in
+-            UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/build/updating/")!)
+-        }))
+-        viewControllerToPresentFrom.present(dialog, animated: true, completion: nil)
+-        
+-        UserDefaults.appGroup?.lastProfileExpirationAlertDate = now
+-    }
+-    
+-    static func createVerboseAlertMessage(timeUntilExpirationStr:String) -> String {
+-        return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to update before that, with a new provisioning profile.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
+-    }
+-    
+-    static func isNearProfileExpiration(profileExpiration:Date) -> Bool {
+-        return profileExpiration.timeIntervalSinceNow < settingsPageExpirationWarningModeWindow
+-    }
+-    
+-    static func createProfileExpirationSettingsMessage(profileExpiration:Date) -> String {
+-        let nearExpiration = isNearProfileExpiration(profileExpiration: profileExpiration)
+-        let maxUnitCount = nearExpiration ? 2 : 1 // only include hours in the msg if near expiration
+-        let readableRelativeTime: String? = relativeTimeFormatter(maxUnitCount: maxUnitCount).string(from: profileExpiration.timeIntervalSinceNow)
+-        let relativeTimeRemaining: String = readableRelativeTime ?? NSLocalizedString("Unknown time", comment: "Unknown amount of time in settings' profile expiration section")
+-        let verboseMessage = createVerboseAlertMessage(timeUntilExpirationStr: relativeTimeRemaining)
+-        let conciseMessage = relativeTimeRemaining + NSLocalizedString(" remaining", comment: "remaining time in setting's profile expiration section")
+-        return nearExpiration ? verboseMessage : conciseMessage
+-    }
+-    
+-    private static func relativeTimeFormatter(maxUnitCount:Int) -> DateComponentsFormatter {
+-        let formatter = DateComponentsFormatter()
+-        let includeHours = maxUnitCount == 2
+-        formatter.allowedUnits = includeHours ? [.day, .hour] :  [.day]
+-        formatter.unitsStyle = .full
+-        formatter.zeroFormattingBehavior = .dropLeading
+-        formatter.maximumUnitCount = maxUnitCount
+-        return formatter;
+-    }
+-}
 diff --git a/Loop/Views/SettingsView.swift b/Loop/Views/SettingsView.swift
-index 0b4cb551..ff465413 100644
+index 0b4cb551..a07d623f 100644
 --- a/Loop/Views/SettingsView.swift
 +++ b/Loop/Views/SettingsView.swift
-@@ -417,25 +417,50 @@ extension SettingsView {
+@@ -417,25 +417,48 @@ extension SettingsView {
       DIY loop specific component to show users the amount of time remaining on their build before a rebuild is necessary.
       */
      private func profileExpirationSection(profileExpiration:Date) -> some View {
@@ -191,9 +342,7 @@ index 0b4cb551..ff465413 100644
 -                UIApplication.shared.open(URL(string: "https://loopkit.github.io/loopdocs/build/updating/")!)
 -            }) {
 -                Text(NSLocalizedString("How to update (LoopDocs)", comment: "The title text for how to update"))
-+        }
-+        else
-+        {
++        } else {
 +            return Section(header: SectionHeader(label: NSLocalizedString("App Profile", comment: "Settings app profile section")),
 +                           footer: Text(NSLocalizedString("Profile expires ", comment: "Time that profile expires") + readableExpirationTime)) {
 +                if(nearExpiration) {
@@ -214,19 +363,10 @@ index 0b4cb551..ff465413 100644
          }
      }
 diff --git a/Scripts/capture-build-details.sh b/Scripts/capture-build-details.sh
-index 66f827d7..53dcaf5c 100755
+index 66f827d7..932e1c7b 100755
 --- a/Scripts/capture-build-details.sh
 +++ b/Scripts/capture-build-details.sh
-@@ -68,6 +68,8 @@ plutil -replace com-loopkit-Loop-srcroot -string "${PWD}" "${info_plist_path}"
- plutil -replace com-loopkit-Loop-build-date -string "$(date)" "${info_plist_path}"
- plutil -replace com-loopkit-Loop-xcode-version -string "${xcode_build_version}" "${info_plist_path}"
- 
-+warn "XXX ${date}"
-+
- if [ -e "${provisioning_profile_path}" ]; then
-   profile_expire_date=$(security cms -D -i "${provisioning_profile_path}" | plutil -p - | grep ExpirationDate | cut -b 23-)
-   # Convert to plutil format
-@@ -91,3 +93,8 @@ then
+@@ -91,3 +91,8 @@ then
      fi
      popd . > /dev/null
  fi
