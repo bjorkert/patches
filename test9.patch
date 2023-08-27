@@ -54,10 +54,10 @@ index aaa0a470..ecba1c2d 100644
  				E95D380324EADF36005E2F50 /* CarbStoreProtocol.swift in Sources */,
 diff --git a/Loop/Managers/AppExpirationAlerter.swift b/Loop/Managers/AppExpirationAlerter.swift
 new file mode 100644
-index 00000000..a8199bbf
+index 00000000..23ceb1e7
 --- /dev/null
 +++ b/Loop/Managers/AppExpirationAlerter.swift
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,134 @@
 +//
 +//  AppExpirationAlerter.swift
 +//  Loop
@@ -132,7 +132,11 @@ index 00000000..a8199bbf
 +    }
 +    
 +    static func createVerboseAlertMessage(timeUntilExpirationStr:String) -> String {
-+        return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to update before that, with a new provisioning profile.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
++        if isTestFlightBuild() {
++            return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to update before that, with a new provisioning profile.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
++        } else {
++            return String(format: NSLocalizedString("%1$@ will stop working in %2$@. You will need to rebuild before that.", comment: "Format string for body for notification of upcoming provisioning profile expiration. (1: app name) (2: amount of time until expiration"), Bundle.main.bundleDisplayName, timeUntilExpirationStr)
++        }
 +    }
 +    
 +    static func isNearExpiration(expirationDate:Date) -> Bool {
