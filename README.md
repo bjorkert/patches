@@ -73,13 +73,6 @@ Please use the copy-button (as shown in the picture below) to copy the command, 
 
 ![Loop](img/copy_command.png)
 
-## Blue Line -30 minutes
-A blue line is added 30 minutes prior to the current time to provide a clearer view of the boluses that have started to take effect.
-I described it in this issue, resulted in some modifications but not the blue line. https://github.com/jonfawcett/LoopFollow/issues/110
-&nbsp;
-## Protein line -90 minutes
-An additional line is added to the graph 90 minutes prior to the current time to indicate if a meal is causing a blood sugar rise 90 minutes later, which may be due to protein that typically takes about 90 minutes to show its effects.
-&nbsp;
 ## PreMeal
 The graph displays the PreMeal period as an orange band located below the green override band.
 &nbsp;
