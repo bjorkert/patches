@@ -1,0 +1,232 @@
+Submodule G7SensorKit contains modified content
+diff --git a/G7SensorKit/G7SensorKit/G7CGMManager/G7Sensor.swift b/G7SensorKit/G7SensorKit/G7CGMManager/G7Sensor.swift
+index b1745a1..7d5bafa 100644
+--- a/G7SensorKit/G7SensorKit/G7CGMManager/G7Sensor.swift
++++ b/G7SensorKit/G7SensorKit/G7CGMManager/G7Sensor.swift
+@@ -10,7 +10,20 @@ import Foundation
+ import CoreBluetooth
+ import HealthKit
+ import os.log
+-
++import CommonCrypto
++import Security
++
++extension String {
++    func sha1() -> String {
++        let data = Data(self.utf8)
++        var digest = [UInt8](repeating: 0, count:Int(CC_SHA1_DIGEST_LENGTH))
++        data.withUnsafeBytes {
++            _ = CC_SHA1($0.baseAddress, CC_LONG(data.count), &digest)
++        }
++        let hexBytes = digest.map { String(format: "%02hhx", $0) }
++        return hexBytes.joined()
++    }
++}
+ 
+ public protocol G7SensorDelegate: AnyObject {
+     func sensorDidConnect(_ sensor: G7Sensor, name: String)
+@@ -122,8 +135,204 @@ public final class G7Sensor: G7BluetoothManagerDelegate {
+         return bluetoothManager.isConnected
+     }
+ 
++    final class SimpleKeychain {
++        enum Config {
++            static let defaultAccessibilityLevel = KeychainItemAccessibility.afterFirstUnlock
++            static let defaultSynchronizable = true
++        }
++
++        private static let defaultServiceName: String = {
++            Bundle.main.bundleIdentifier ?? "SwiftBaseKeychain"
++        }()
++
++        private let serviceName: String
++        private let accessGroup: String?
++        private let defaultSynchronizable: Bool
++        private let defaultAccessibilityLevel: KeychainItemAccessibility
++
++        init(
++            serviceName: String = SimpleKeychain.defaultServiceName,
++            synchronizable: Bool = Config.defaultSynchronizable,
++            accessibilityLevel: KeychainItemAccessibility = Config.defaultAccessibilityLevel,
++            accessGroup: String? = nil
++        ) {
++            self.serviceName = serviceName
++            self.defaultSynchronizable = synchronizable
++            self.defaultAccessibilityLevel = accessibilityLevel
++            self.accessGroup = accessGroup
++        }
++
++        func getValue(forKey key: String) -> String? {
++            var query: [String: Any] = [
++                kSecClass as String: kSecClassGenericPassword,
++                kSecAttrAccount as String: key,
++                kSecAttrService as String: serviceName,
++                kSecReturnData as String: true,
++                kSecMatchLimit as String: kSecMatchLimitOne
++            ]
++
++            query[kSecAttrSynchronizable as String] = defaultSynchronizable ? kCFBooleanTrue : kCFBooleanFalse
++            if let accessGroup = accessGroup {
++                query[kSecAttrAccessGroup as String] = accessGroup
++            }
++
++            var item: CFTypeRef?
++            let status = SecItemCopyMatching(query as CFDictionary, &item)
++
++            guard status == errSecSuccess, let data = item as? Data else {
++                print("Keychain error: \(status)")
++                return nil
++            }
++
++            return String(data: data, encoding: .utf8)
++        }
++
++        func getDecodedValue(forKey key: String) -> String? {
++            guard let jsonString = getValue(forKey: key),
++                  let jsonData = jsonString.data(using: .utf8) else {
++                return nil
++            }
++
++            do {
++                let decodedObject = try JSONDecoder().decode(DecodableWrapper<String>.self, from: jsonData)
++                return decodedObject.v
++            } catch {
++                print("Failed to decode JSON: \(error)")
++                return nil
++            }
++        }
++
++        private struct DecodableWrapper<T: Decodable>: Decodable {
++            let v: T
++        }
++    }
++
++    enum KeychainItemAccessibility {
++        case afterFirstUnlock
++        case whenUnlocked
++
++        var keychainAttrValue: CFString {
++            switch self {
++            case .afterFirstUnlock: return kSecAttrAccessibleAfterFirstUnlock
++            case .whenUnlocked: return kSecAttrAccessibleWhenUnlocked
++            }
++        }
++    }
++
++    // Enum for configuration keys
++    enum NightscoutConfig {
++        enum Config {
++            static let urlKey = "NightscoutConfig.url"
++            static let secretKey = "NightscoutConfig.secret"
++        }
++    }
++
++    // Use the SimpleKeychain to retrieve the URL and secret
++    let keychain = SimpleKeychain()
++
++    func getNightscoutURL() -> URL? {
++        guard let urlString = keychain.getDecodedValue(forKey: NightscoutConfig.Config.urlKey) else {
++            return nil
++        }
++        return URL(string: urlString)
++    }
++
++    func getNightscoutSecret() -> String? {
++        return keychain.getDecodedValue(forKey: NightscoutConfig.Config.secretKey)
++    }
++
++    func createJSON(dateString: String) -> [String: Any]? {
++        guard let secret = getNightscoutSecret() else {
++            print("Failed to retrieve Nightscout secret")
++            return nil
++        }
++
++        let json: [String: Any] = [
++            "enteredBy": "Trio",
++            "created_at": dateString,
++            "eventType": "Sensor Start",
++            "secret": secret.sha1()
++        ]
++        return json
++    }
++
++    private func detectNewSensor() {
++        do { // Silence all errors and return
++            if let date = self.activationDate {
++                let tenDaysInSeconds = 864000.0
++                let timeIntervalSinceNow = date.timeIntervalSinceNow
++                let now = Date()
++
++                //Check that the sessionStartDate is reasonable
++                if timeIntervalSinceNow > -tenDaysInSeconds && date <= now {
++
++                    //Read the last date sent to nightscout
++                    let interval = UserDefaults.standard.double(forKey: "lastG7SessionStartDate")
++                    let lastsessionStartDate = Date(timeIntervalSinceReferenceDate: interval)
++
++                    //Check if the last value we sent to nightscout is not the same (with some margin for rounding errors)
++                    if abs(date.timeIntervalSince(lastsessionStartDate)) > 60 {
++                        let formatter = ISO8601DateFormatter()
++                        formatter.timeZone = TimeZone(abbreviation: "UTC")
++                        let dateString = formatter.string(from: date)
++
++                        guard let json = createJSON(dateString: dateString) else {
++                            print("Failed to create JSON payload")
++                            return
++                        }
++
++                        guard let nightscoutURL = getNightscoutURL() else {
++                            print("Failed to retrieve Nightscout URL")
++                            return
++                        }
++
++                        guard var urlComponents = URLComponents(url: nightscoutURL, resolvingAgainstBaseURL: false) else {
++                            print("Failed to create URL components")
++                            return
++                        }
++
++                        if urlComponents.path.hasSuffix("/") {
++                            urlComponents.path = String(urlComponents.path.dropLast())
++                        }
++                        urlComponents.path += "/api/v1/treatments.json"
++
++                        guard let apiURL = urlComponents.url else {
++                            print("Failed to construct API URL")
++                            return
++                        }
++
++                        var request = URLRequest(url: apiURL)
++                        request.httpMethod = "POST"
++                        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
++                        if let jsonData = try? JSONSerialization.data(withJSONObject: json) {
++                            request.httpBody = jsonData
++                        } else {
++                            print("Failed to serialize JSON.")
++                        }
++                        let task = URLSession.shared.dataTask(with: request) { data, response, error in
++                            if let error = error {
++                                print("Error: \(error)")
++                                return
++                            }
++
++                            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
++                                print("Error: Invalid response")
++                                return
++                            }
++                            UserDefaults.standard.set(date.timeIntervalSinceReferenceDate, forKey: "lastG7SessionStartDate")
++                        }
++                        task.resume()
++                    }
++                }
++            }
++        } catch {
++            return
++        }
++    }
++
+     private func handleGlucoseMessage(message: G7GlucoseMessage, peripheralManager: G7PeripheralManager) {
+         activationDate = Date().addingTimeInterval(-TimeInterval(message.messageTimestamp))
++        self.detectNewSensor()
+         peripheralManager.perform { (peripheral) in
+             self.log.debug("Listening for backfill responses")
+             // Subscribe to backfill updates
