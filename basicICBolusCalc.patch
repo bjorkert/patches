@@ -1,70 +1,112 @@
-Submodule Loop contains modified content
 diff --git a/Loop/Loop/View Models/BolusEntryViewModel.swift b/Loop/Loop/View Models/BolusEntryViewModel.swift
-index bd2ecd47..e3d6ba6a 100644
+index a86f20e0..335f1169 100644
 --- a/Loop/Loop/View Models/BolusEntryViewModel.swift	
 +++ b/Loop/Loop/View Models/BolusEntryViewModel.swift	
-@@ -773,6 +773,56 @@ final class BolusEntryViewModel: ObservableObject {
+@@ -788,6 +788,56 @@ final class BolusEntryViewModel: ObservableObject {
  
          chartDateInterval = DateInterval(start: chartStartDate, duration: .hours(totalHours))
      }
-+
++    
 +    // Gets the current insulin-to-carb ratio based on the carb ratio schedule
-+    func currentInsulinToCarbRatio(carbs: HKQuantity) -> Double? {
-+        // Ensure the carb ratio schedule is available
-+        guard let carbRatioSchedule = delegate?.settings.carbRatioSchedule else {
-+            return nil
++        func currentInsulinToCarbRatio(carbs: HKQuantity) -> Double? {
++            // Ensure the carb ratio schedule is available
++            guard let carbRatioSchedule = delegate?.settings.carbRatioSchedule else {
++                return nil
++            }
++    
++            // Get the current date
++            let date = Date()
++    
++            // Retrieve the carb ratio at the current date
++            let carbRatio = carbRatioSchedule.quantity(at: date)
++            let currentICRatio = carbRatio.doubleValue(for: .gram())
++    
++            return currentICRatio
 +        }
-+
-+        // Get the current date
-+        let date = Date()
-+
-+        // Retrieve the carb ratio at the current date
-+        let carbRatio = carbRatioSchedule.quantity(at: date)
-+        let currentICRatio = carbRatio.doubleValue(for: .gram())
-+
-+        return currentICRatio
-+    }
-+
-+    // Calculates the bolus amount based on the given carbs, carbs on board, the insulin-to-carb ratio, and the active insulin
-+    func calculateBasicBolus(carbs: HKQuantity) -> Double? {
-+        // Get the current insulin-to-carb ratio, return nil if it cannot be obtained
-+        guard let currentICRatio = currentInsulinToCarbRatio(carbs: carbs), currentICRatio != 0 else {
-+            return nil
++    
++        // Calculates the bolus amount based on the given carbs, carbs on board, the insulin-to-carb ratio, and the active insulin
++        func calculateBasicBolus(carbs: HKQuantity) -> Double? {
++            // Get the current insulin-to-carb ratio, return nil if it cannot be obtained
++            guard let currentICRatio = currentInsulinToCarbRatio(carbs: carbs), currentICRatio != 0 else {
++                return nil
++            }
++    
++            // Get the insulin on board, using a minimum value of 0
++            let insulinOnBoard = max(activeInsulin?.doubleValue(for: .internationalUnit()) ?? 0, 0)
++    
++            // Get the carbs on board, using a default value of 0 if it cannot be obtained
++            let carbsOnBoard = activeCarbs?.doubleValue(for: .gram()) ?? 0
++    
++            // Calculate the total carbs by adding the entered carbs and carbs on board
++            let totalCarbs = carbs.doubleValue(for: HKUnit.gram()) + carbsOnBoard
++    
++            // Calculate the unadjusted bolus by dividing the total carbs by the current insulin-to-carb ratio
++            let unadjustedBolus = totalCarbs / currentICRatio
++    
++            // Calculate the bolus with insulin on board considered, ensuring it's not less than 0
++            let bolusWithIOB = max(unadjustedBolus - insulinOnBoard, 0)
++    
++            // Round the bolus volume according to the pump's settings
++            let roundedBolus = roundedBolusVolume(units: bolusWithIOB)
++    
++            return roundedBolus
 +        }
-+
-+        // Get the insulin on board, using a minimum value of 0
-+        let insulinOnBoard = max(activeInsulin?.doubleValue(for: .internationalUnit()) ?? 0, 0)
-+
-+        // Get the carbs on board, using a default value of 0 if it cannot be obtained
-+        let carbsOnBoard = activeCarbs?.doubleValue(for: .gram()) ?? 0
-+
-+        // Calculate the total carbs by adding the entered carbs and carbs on board
-+        let totalCarbs = carbs.doubleValue(for: HKUnit.gram()) + carbsOnBoard
-+
-+        // Calculate the unadjusted bolus by dividing the total carbs by the current insulin-to-carb ratio
-+        let unadjustedBolus = totalCarbs / currentICRatio
-+
-+        // Calculate the bolus with insulin on board considered, ensuring it's not less than 0
-+        let bolusWithIOB = max(unadjustedBolus - insulinOnBoard, 0)
-+
-+        // Round the bolus volume according to the pump's settings
-+        let roundedBolus = roundedBolusVolume(units: bolusWithIOB)
-+
-+        return roundedBolus
-+    }
-+
-+    // Rounds the bolus volume according to the pump's specifications
-+    func roundedBolusVolume(units: Double) -> Double {
-+        return delegate?.roundBolusVolume(units: units) ?? units
-+    }
- }
++    
++        // Rounds the bolus volume according to the pump's specifications
++        func roundedBolusVolume(units: Double) -> Double {
++            return delegate?.roundBolusVolume(units: units) ?? units
++        }
  
- extension BolusEntryViewModel.Alert: Identifiable {
+     func formatBolusAmount(_ bolusAmount: Double) -> String {
+         bolusAmountFormatter.string(from: bolusAmount) ?? String(bolusAmount)
 diff --git a/Loop/Loop/Views/BolusEntryView.swift b/Loop/Loop/Views/BolusEntryView.swift
-index b59b3fbd..24212bc3 100644
+index 4dd0c11a..ffed8fb5 100644
 --- a/Loop/Loop/Views/BolusEntryView.swift
 +++ b/Loop/Loop/Views/BolusEntryView.swift
-@@ -194,6 +194,7 @@ struct BolusEntryView: View {
+@@ -156,6 +156,42 @@ struct BolusEntryView: View {
+             maxFractionDigits: 2
+         )
+     }
++    
++        // SwiftUI view component displaying the basic I:C bolus calculation
++        private var basicICBolusCalcRow: some View {
++            HStack {
++                Text("Basic I:C Bolus Calc", comment: "Label for basic I:C bolus calc row on bolus screen")
++                Spacer()
++                HStack(alignment: .firstTextBaseline) {
++                    Text(basicBolusCalcString)
++                    .font(.title)
++                        .foregroundColor(Color(.red))
++                    bolusUnitsLabel
++                }
++            }
++            .accessibilityElement(children: .combine)
++            // Handle tap gestures to update enteredBolusStringBinding with the calculated bolus value
++            .onTapGesture {
++                enteredBolusStringBinding.wrappedValue = basicBolusCalcString
++            }
++        }
++    
++        // Computed property returning the string representation of the basic bolus calculation
++        private var basicBolusCalcString: String {
++            // Ensure a potential carb entry is available
++            guard let potentialCarbEntry = viewModel.potentialCarbEntry else { return "–" }
++    
++            // Get the carbs quantity
++            let carbsQuantity = potentialCarbEntry.quantity
++    
++            // Calculate the basic bolus using the view model's function
++            guard let basicBolus = viewModel.calculateBasicBolus(carbs: carbsQuantity) else {
++                return "–"
++            }
++    
++            // Return the formatted basic bolus string
++            return Self.doseAmountFormatter.string(from: basicBolus) ?? "–"
++        }
+ 
+     private var predictedGlucoseChart: some View {
+         PredictedGlucoseChartView(
+@@ -194,6 +230,7 @@ struct BolusEntryView: View {
  
              if viewModel.isManualGlucoseEntryEnabled || viewModel.potentialCarbEntry != nil {
                  recommendedBolusRow
@@ -72,56 +114,3 @@ index b59b3fbd..24212bc3 100644
              }
  
              bolusEntryRow
-@@ -245,6 +246,9 @@ struct BolusEntryView: View {
-             }
-         }
-         .accessibilityElement(children: .combine)
-+        .onTapGesture {
-+            enteredBolusStringBinding.wrappedValue = recommendedBolusString
-+        }
-     }
- 
-     private var recommendedBolusString: String {
-@@ -457,6 +461,42 @@ struct BolusEntryView: View {
-             )
-         }
-     }
-+
-+    // SwiftUI view component displaying the basic I:C bolus calculation
-+    private var basicICBolusCalcRow: some View {
-+        HStack {
-+            Text("Basic I:C Bolus Calc", comment: "Label for basic I:C bolus calc row on bolus screen")
-+            Spacer()
-+            HStack(alignment: .firstTextBaseline) {
-+                Text(basicBolusCalcString)
-+                    .font(.title)
-+                    .foregroundColor(Color(.red))
-+                bolusUnitsLabel
-+            }
-+        }
-+        .accessibilityElement(children: .combine)
-+        // Handle tap gestures to update enteredBolusStringBinding with the calculated bolus value
-+        .onTapGesture {
-+            enteredBolusStringBinding.wrappedValue = basicBolusCalcString
-+        }
-+    }
-+
-+    // Computed property returning the string representation of the basic bolus calculation
-+    private var basicBolusCalcString: String {
-+        // Ensure a potential carb entry is available
-+        guard let potentialCarbEntry = viewModel.potentialCarbEntry else { return "–" }
-+
-+        // Get the carbs quantity
-+        let carbsQuantity = potentialCarbEntry.quantity
-+
-+        // Calculate the basic bolus using the view model's function
-+        guard let basicBolus = viewModel.calculateBasicBolus(carbs: carbsQuantity) else {
-+            return "–"
-+        }
-+
-+        // Return the formatted basic bolus string
-+        return Self.doseAmountFormatter.string(from: basicBolus) ?? "–"
-+    }
- }
- 
- struct LabeledQuantity: View {
